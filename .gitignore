@@ -1,0 +1,76 @@
+# .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.log
+*.tmp
+*.temp
+*.swp
+*.bak
+*.orig
+
+# Visual Studio
+.vs/
+*.suo
+*.user
+*.aps
+*.pch
+*.vspscc
+*_i.c
+*_p.c
+*.ncb
+*.suo
+*.tlb
+*.tlh
+*.tmp
+*.tmp_proj
+*.log
+*.vspscc
+*.vssscc
+.builds
+*.pidb
+*.svclog
+*.svcmap
+
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# OS
+.DS_Store
+Thumbs.db
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+*.nuspec
+
+# JetBrains Rider
+.idea/
+
+# Build results
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+*.exe
+*.dll
+*.pdb
+*.cache
+*.log
+
+# MSBuild
+*.msbuild
+*.tlog
+
+# Avalonia
+# Add any Avalonia-specific ignores if needed
+
+# User-specific files
+*.local
