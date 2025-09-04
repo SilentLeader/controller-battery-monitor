@@ -5,31 +5,54 @@ namespace XboxBatteryMonitor.Models;
 
 public partial class Settings : ObservableObject
 {
-    [ObservableProperty]
-    [JsonPropertyName("windowX")]
-    private double windowX = -1;
+    private SettingsData _data;
+
+    public Settings(SettingsData? data = null)
+    {
+        _data = data ?? new SettingsData();
+        // Initialize observable properties from data
+        WindowX = _data.WindowX;
+        WindowY = _data.WindowY;
+        WindowWidth = _data.WindowWidth;
+        WindowHeight = _data.WindowHeight;
+        StartMinimized = _data.StartMinimized;
+        UpdateFrequencySeconds = _data.UpdateFrequencySeconds;
+        HideTrayIconWhenDisconnected = _data.HideTrayIconWhenDisconnected;
+    }
 
     [ObservableProperty]
-    [JsonPropertyName("windowY")]
-    private double windowY = -1;
+    private double windowX;
 
     [ObservableProperty]
-    [JsonPropertyName("windowWidth")]
-    private double windowWidth = 640;
+    private double windowY;
 
     [ObservableProperty]
-    [JsonPropertyName("windowHeight")]
-    private double windowHeight = 450;
+    private double windowWidth;
 
     [ObservableProperty]
-    [JsonPropertyName("startMinimized")]
-    private bool startMinimized = true;
+    private double windowHeight;
 
     [ObservableProperty]
-    [JsonPropertyName("updateFrequencySeconds")]
-    private int updateFrequencySeconds = 5;
+    private bool startMinimized;
 
     [ObservableProperty]
-    [JsonPropertyName("hideTrayIconWhenDisconnected")]
-    private bool hideTrayIconWhenDisconnected = false;
+    private int updateFrequencySeconds;
+
+    [ObservableProperty]
+    private bool hideTrayIconWhenDisconnected;
+
+    // Method to convert back to SettingsData for serialization
+    public SettingsData ToSettingsData()
+    {
+        return new SettingsData
+        {
+            WindowX = WindowX,
+            WindowY = WindowY,
+            WindowWidth = WindowWidth,
+            WindowHeight = WindowHeight,
+            StartMinimized = StartMinimized,
+            UpdateFrequencySeconds = UpdateFrequencySeconds,
+            HideTrayIconWhenDisconnected = HideTrayIconWhenDisconnected
+        };
+    }
 }

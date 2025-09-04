@@ -30,12 +30,14 @@ public class SettingsService
         }
 
         var json = File.ReadAllText(_settingsFilePath);
-        return JsonSerializer.Deserialize(json, _jsonContext.Settings) ?? new Settings();
+        var data = JsonSerializer.Deserialize(json, _jsonContext.SettingsData) ?? new SettingsData();
+        return new Settings(data);
     }
 
     public void SaveSettings(Settings settings)
     {
-        var json = JsonSerializer.Serialize(settings, _jsonContext.Settings);
+        var data = settings.ToSettingsData();
+        var json = JsonSerializer.Serialize(data, _jsonContext.SettingsData);
         File.WriteAllText(_settingsFilePath, json);
     }
 }
