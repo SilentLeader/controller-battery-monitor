@@ -35,7 +35,7 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       - name: Publish Windows
-        run: dotnet publish src/XboxBatteryMonitor/XboxBatteryMonitor.csproj -c Release -r win-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }}
+        run: dotnet publish src/XboxBatteryMonitor/XboxBatteryMonitor.csproj -c Release -r win-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
@@ -53,7 +53,7 @@ jobs:
         with:
           dotnet-version: '9.0.x'
       - name: Publish Linux
-        run: dotnet publish src/XboxBatteryMonitor/XboxBatteryMonitor.csproj -c Release -r linux-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }}
+        run: dotnet publish src/XboxBatteryMonitor/XboxBatteryMonitor.csproj -c Release -r linux-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
