@@ -14,7 +14,6 @@ public class SingleInstanceService : IDisposable
     private static readonly string PipeName = $"{Environment.UserName}_XboxBatteryMonitorPipe";
 
     private Mutex? _mutex;
-    private NamedPipeServerStream? _pipeServer;
     private Task? _pipeTask;
     private CancellationTokenSource? _cancellationTokenSource;
     private MainWindow? _mainWindow;
@@ -64,7 +63,6 @@ public class SingleInstanceService : IDisposable
     private void StartPipeServer()
     {
         _cancellationTokenSource = new CancellationTokenSource();
-        _pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.In);
         _pipeTask = PipeServerLoop(_cancellationTokenSource.Token);
     }
 
@@ -74,28 +72,26 @@ public class SingleInstanceService : IDisposable
         {
             try
             {
-                if (_pipeServer == null)
+                using (var pipeServer = new NamedPipeServerStream(PipeName, PipeDirection.In))
                 {
-                    continue;
-                }
-                await _pipeServer.WaitForConnectionAsync(token);
-                using (StreamReader reader = new StreamReader(_pipeServer!))
-                {
-                    string? message = reader.ReadLine();
-                    if (message == "SHOW")
+                    await pipeServer.WaitForConnectionAsync(token);
+                    using (StreamReader reader = new StreamReader(pipeServer))
                     {
-                        Dispatcher.UIThread.Invoke(() =>
+                        string? message = reader.ReadLine();
+                        if (message == "SHOW")
                         {
-                            if (_mainWindow != null)
+                            Dispatcher.UIThread.Invoke(() =>
                             {
-                                _mainWindow.Show();
-                                _mainWindow.WindowState = WindowState.Normal;
-                                _mainWindow.Activate();
-                            }
-                        });
+                                if (_mainWindow != null)
+                                {
+                                    _mainWindow.Show();
+                                    _mainWindow.WindowState = WindowState.Normal;
+                                    _mainWindow.Activate();
+                                }
+                            });
+                        }
                     }
                 }
-                _pipeServer?.Disconnect();
             }
             catch
             {
@@ -108,7 +104,6 @@ public class SingleInstanceService : IDisposable
     {
         _cancellationTokenSource?.Cancel();
         _pipeTask?.Wait();
-        _pipeServer?.Dispose();
         _mutex?.Dispose();
     }
 }
