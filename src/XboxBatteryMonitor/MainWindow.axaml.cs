@@ -40,20 +40,8 @@ public partial class MainWindow : Window
 
         UpdateWindowIcon();
 
-        IBatteryMonitorService service;
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            service = new BatteryMonitorLinux();
-        }
-        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-        {
-            service = new BatteryMonitorWindows();
-        }
-        else
-        {
-            service = new BatteryMonitorWindows(); // placeholder
-        }
-
+        // Use factory to create platform-specific service
+        var service = BatteryMonitorFactory.CreatePlatformService();
         var notificationService = new NotificationService();
         _viewModel = new MainWindowViewModel(service, settings, notificationService);
         DataContext = _viewModel;

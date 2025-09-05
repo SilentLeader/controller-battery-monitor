@@ -3,14 +3,22 @@
     <OutputType>WinExe</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <BuiltInComInteropSupport Condition="$([MSBuild]::IsOSPlatform('Windows'))">true</BuiltInComInteropSupport>
+    <ApplicationManifest Condition="$([MSBuild]::IsOSPlatform('Windows'))">app.manifest</ApplicationManifest>
     <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     <PublishAot>true</PublishAot>
     <PublishSingleFile Condition="'$(RuntimeIdentifier)' == 'linux-x64'">true</PublishSingleFile>
     <SelfContained>true</SelfContained>
     <InvariantGlobalization>true</InvariantGlobalization>
     <TrimMode>partial</TrimMode>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-x86' OR '$(RuntimeIdentifier)' == 'win-arm64' OR '$([MSBuild]::IsOSPlatform(Windows))' == 'true'">
+    <DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64' OR '$(RuntimeIdentifier)' == 'linux-arm64' OR '$([MSBuild]::IsOSPlatform(Linux))' == 'true'">
+    <DefineConstants>$(DefineConstants);LINUX</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +32,6 @@
       <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
     </PackageReference>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-    <PackageReference Include="Microsoft.GameInput" Version="2.1.26100.6068" />
   </ItemGroup>
 
   <ItemGroup>
