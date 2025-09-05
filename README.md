@@ -21,25 +21,27 @@ A cross-platform Avalonia UI application for monitoring Xbox controller battery 
 ## Linux Implementation
 
 The Linux implementation reads battery information from `/sys/class/power_supply/` by:
+
 - Scanning for battery devices
 - Identifying Xbox controller batteries by model name
 - Parsing uevent files for capacity level and charging status
 
 ## Windows Implementation
 
-The Windows implementation uses the GameInput API (available on Windows 11+) to monitor Xbox controller batteries by:
-- Enumerating connected game input devices
-- Filtering for Xbox One and Xbox 360 controllers
-- Querying battery state for level (empty, low, medium, full) and charging status
-- Providing percentage capacity when available
+The Windows implementation uses the XInput API to monitor Xbox controller batteries by:
 
-Note: Requires Windows 11 or later. On older Windows versions, the app will show disconnected status.
+- Checking up to 4 XInput controller slots for connected devices
+- Using XInputGetState to detect controller presence
+- Using XInputGetBatteryInformation to query battery details
+- Converting XInput battery levels (empty, low, medium, full) to application format
+- Detecting charging status based on battery type (wired controllers show as charging)
+
+Note: Uses xinput1_4.dll which is available on Windows Vista and later. Battery percentage is not available through XInput - only discrete levels are provided.
 
 ## Dependencies
 
 - Avalonia UI
 - CommunityToolkit.Mvvm
-- Microsoft.GameInput (for Windows battery monitoring)
 
 ## Sources
 
