@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text.Json;
 using XboxBatteryMonitor.Models;
+using XboxBatteryMonitor.ViewModels;
 
 namespace XboxBatteryMonitor.Services;
 
@@ -22,19 +23,19 @@ public class SettingsService
         });
     }
 
-    public Settings LoadSettings()
+    public SettingsViewModel LoadSettings()
     {
         if (!File.Exists(_settingsFilePath))
         {
-            return new Settings();
+            return new SettingsViewModel();
         }
 
         var json = File.ReadAllText(_settingsFilePath);
         var data = JsonSerializer.Deserialize(json, _jsonContext.SettingsData) ?? new SettingsData();
-        return new Settings(data);
+        return new SettingsViewModel(data);
     }
 
-    public void SaveSettings(Settings settings)
+    public void SaveSettings(SettingsViewModel settings)
     {
         var data = settings.ToSettingsData();
         var json = JsonSerializer.Serialize(data, _jsonContext.SettingsData);

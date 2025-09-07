@@ -19,14 +19,14 @@ public partial class MainWindow : Window
     private TrayIcon? _trayIcon;
     private MainWindowViewModel? _viewModel;
     private NativeMenuItem? _statusMenuItem;
-    private Settings _settings;
+    private SettingsViewModel _settings;
     private bool _isShutdown = false;
 
-    public MainWindow() : this(new Settings())
+    public MainWindow() : this(new SettingsViewModel())
     {
     }
 
-    public MainWindow(Settings settings)
+    public MainWindow(SettingsViewModel settings)
     {
         _settings = settings;
         InitializeComponent();

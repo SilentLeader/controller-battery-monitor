@@ -1,57 +1,27 @@
-using CommunityToolkit.Mvvm.ComponentModel;
+using System.Text.Json.Serialization;
 
 namespace XboxBatteryMonitor.Models;
 
-public partial class Settings : ObservableObject
+public class SettingsData
 {
-    private SettingsData _data;
+    [JsonPropertyName("windowX")]
+    public double WindowX { get; set; } = -1;
 
-    public Settings(SettingsData? data = null)
-    {
-        _data = data ?? new SettingsData();
-        // Initialize observable properties from data
-        WindowX = _data.WindowX;
-        WindowY = _data.WindowY;
-        WindowWidth = _data.WindowWidth;
-        WindowHeight = _data.WindowHeight;
-        StartMinimized = _data.StartMinimized;
-        UpdateFrequencySeconds = _data.UpdateFrequencySeconds;
-        HideTrayIconWhenDisconnected = _data.HideTrayIconWhenDisconnected;
-    }
+    [JsonPropertyName("windowY")]
+    public double WindowY { get; set; } = -1;
 
-    [ObservableProperty]
-    private double windowX;
+    [JsonPropertyName("windowWidth")]
+    public double WindowWidth { get; set; } = 640;
 
-    [ObservableProperty]
-    private double windowY;
+    [JsonPropertyName("windowHeight")]
+    public double WindowHeight { get; set; } = 450;
 
-    [ObservableProperty]
-    private double windowWidth;
+    [JsonPropertyName("startMinimized")]
+    public bool StartMinimized { get; set; } = true;
 
-    [ObservableProperty]
-    private double windowHeight;
+    [JsonPropertyName("updateFrequencySeconds")]
+    public int UpdateFrequencySeconds { get; set; } = 5;
 
-    [ObservableProperty]
-    private bool startMinimized;
-
-    [ObservableProperty]
-    private int updateFrequencySeconds;
-
-    [ObservableProperty]
-    private bool hideTrayIconWhenDisconnected;
-
-    // Method to convert back to SettingsData for serialization
-    public SettingsData ToSettingsData()
-    {
-        return new SettingsData
-        {
-            WindowX = WindowX,
-            WindowY = WindowY,
-            WindowWidth = WindowWidth,
-            WindowHeight = WindowHeight,
-            StartMinimized = StartMinimized,
-            UpdateFrequencySeconds = UpdateFrequencySeconds,
-            HideTrayIconWhenDisconnected = HideTrayIconWhenDisconnected
-        };
-    }
+    [JsonPropertyName("hideTrayIconWhenDisconnected")]
+    public bool HideTrayIconWhenDisconnected { get; set; } = false;
 }

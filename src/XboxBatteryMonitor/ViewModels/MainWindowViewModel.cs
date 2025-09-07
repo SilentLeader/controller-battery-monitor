@@ -23,12 +23,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private ControllerInfo controllerInfo = new();
 
     [ObservableProperty]
-    private Settings settings;
+    private SettingsViewModel settings;
     private bool disposedValue;
 
     public bool IsCapacityVisible => ControllerInfo.BatteryInfo.Capacity != null;
 
-    public MainWindowViewModel(IBatteryMonitorService batteryService, Settings settings, INotificationService notificationService)
+    public MainWindowViewModel(IBatteryMonitorService batteryService, SettingsViewModel settings, INotificationService notificationService)
     {
         _batteryService = batteryService;
         _settingsService = new SettingsService();
