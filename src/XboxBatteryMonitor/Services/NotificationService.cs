@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using XboxBatteryMonitor.Services;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 

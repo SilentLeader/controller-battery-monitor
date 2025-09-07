@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using XboxBatteryMonitor.Services;
-using XboxBatteryMonitor.Models;
 
 namespace XboxBatteryMonitor;
 

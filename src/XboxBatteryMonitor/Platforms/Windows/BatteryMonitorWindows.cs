@@ -1,5 +1,7 @@
+#if WINDOWS
 using System;
 using System.Runtime.InteropServices;
+#endif
 using System.Threading.Tasks;
 using XboxBatteryMonitor.Models;
 using XboxBatteryMonitor.Services;
