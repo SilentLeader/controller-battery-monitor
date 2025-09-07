@@ -57,7 +57,7 @@ jobs:
       - name: Install fpm
         run: |
           sudo apt-get update
-          sudo apt-get install -y ruby ruby-dev build-essential
+          sudo apt-get install -y ruby ruby-dev build-essential libarchive-tools
           sudo gem install fpm
       - name: Create package structure
         run: |
