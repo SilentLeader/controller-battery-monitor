@@ -4,7 +4,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:XboxBatteryMonitor.ViewModels"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
-        x:Class="XboxBatteryMonitor.MainWindow"
+        x:Class="XboxBatteryMonitor.Windows.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Xbox Battery Monitor">
     <TabControl Margin="20">

@@ -11,7 +11,7 @@ using Avalonia.Media.Imaging;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 
-namespace XboxBatteryMonitor;
+namespace XboxBatteryMonitor.Windows;
 
 public partial class MainWindow : Window
 {
