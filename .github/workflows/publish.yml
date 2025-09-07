@@ -62,15 +62,33 @@ jobs:
       - name: Create package structure
         run: |
           mkdir -p staging/usr/bin
+          mkdir -p staging/usr/lib/xbox-battery-monitor
           mkdir -p staging/usr/share/icons/hicolor/256x256/apps
           mkdir -p staging/usr/share/applications
-          cp -r src/XboxBatteryMonitor/bin/Release/net9.0/linux-x64/publish/* staging/usr/bin/
+
+          # Copy executable to /usr/bin
+          cp src/XboxBatteryMonitor/bin/Release/net9.0/linux-x64/publish/XboxBatteryMonitor staging/usr/bin/
+
+          # Copy shared libraries to /usr/lib/appname
+          cp src/XboxBatteryMonitor/bin/Release/net9.0/linux-x64/publish/*.so staging/usr/lib/xbox-battery-monitor/
+
+          # Create wrapper script that sets LD_LIBRARY_PATH
+          cat > staging/usr/bin/xbox-battery-monitor << 'EOF'
+          #!/bin/bash
+          export LD_LIBRARY_PATH="/usr/lib/xbox-battery-monitor:$LD_LIBRARY_PATH"
+          exec /usr/bin/XboxBatteryMonitor "$@"
+          EOF
+          chmod +x staging/usr/bin/xbox-battery-monitor
+
+          # Copy icon
           cp src/XboxBatteryMonitor/Assets/icons/app.png staging/usr/share/icons/hicolor/256x256/apps/xbox-battery-monitor.png
+
+          # Create desktop file using wrapper script
           cat > staging/usr/share/applications/xbox-battery-monitor.desktop << EOF
           [Desktop Entry]
           Name=Xbox Battery Monitor
           Comment=A cross-platform Avalonia UI application for monitoring Xbox controller battery levels
-          Exec=/usr/bin/XboxBatteryMonitor
+          Exec=/usr/bin/xbox-battery-monitor
           Icon=xbox-battery-monitor
           Terminal=false
           Type=Application
