@@ -54,11 +54,61 @@ jobs:
           dotnet-version: '9.0.x'
       - name: Publish Linux
         run: dotnet publish src/XboxBatteryMonitor/XboxBatteryMonitor.csproj -c Release -r linux-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None
+      - name: Install fpm
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ruby ruby-dev build-essential
+          sudo gem install fpm
+      - name: Create package structure
+        run: |
+          mkdir -p staging/usr/bin
+          mkdir -p staging/usr/share/icons/hicolor/256x256/apps
+          mkdir -p staging/usr/share/applications
+          cp src/XboxBatteryMonitor/bin/Release/net9.0/linux-x64/publish/XboxBatteryMonitor staging/usr/bin/
+          cp src/XboxBatteryMonitor/Assets/icons/app.png staging/usr/share/icons/hicolor/256x256/apps/xbox-battery-monitor.png
+          cat > staging/usr/share/applications/xbox-battery-monitor.desktop << EOF
+          [Desktop Entry]
+          Name=Xbox Battery Monitor
+          Comment=A cross-platform Avalonia UI application for monitoring Xbox controller battery levels
+          Exec=/usr/bin/XboxBatteryMonitor
+          Icon=xbox-battery-monitor
+          Terminal=false
+          Type=Application
+          Categories=Utility;
+          EOF
+      - name: Create deb package
+        run: |
+          fpm -s dir -t deb -n xbox-battery-monitor -v ${{ needs.version.outputs.semver }} \
+            --description "A cross-platform Avalonia UI application for monitoring Xbox controller battery levels" \
+            --maintainer "SilentLeader <https://github.com/SilentLeader/>" \
+            --url "https://github.com/SilentLeader/controller-battery-monitor" \
+            --license "MIT" \
+            -C staging .
+          mv xbox-battery-monitor_${{ needs.version.outputs.semver }}_amd64.deb XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.deb
+      - name: Create pacman package
+        run: |
+          fpm -s dir -t pacman -n xbox-battery-monitor -v ${{ needs.version.outputs.semver }} \
+            --description "A cross-platform Avalonia UI application for monitoring Xbox controller battery levels" \
+            --maintainer "SilentLeader <https://github.com/SilentLeader/>" \
+            --url "https://github.com/SilentLeader/controller-battery-monitor" \
+            --license "MIT" \
+            -C staging .
+          mv xbox-battery-monitor-${{ needs.version.outputs.semver }}-1-x86_64.pkg.tar.zst XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.pkg.tar.zst
       - name: Upload Linux artifact
         uses: actions/upload-artifact@v4
         with:
           name: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}
           path: src/XboxBatteryMonitor/bin/Release/net9.0/linux-x64/publish/
+      - name: Upload deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: XboxBatteryMonitor-deb-${{ needs.version.outputs.semver }}
+          path: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.deb
+      - name: Upload pacman package
+        uses: actions/upload-artifact@v4
+        with:
+          name: XboxBatteryMonitor-pacman-${{ needs.version.outputs.semver }}
+          path: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.pkg.tar.zst
 
   release:
     needs: [version, build-windows, build-linux]
@@ -76,6 +126,16 @@ jobs:
         with:
           name: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}
           path: artifacts/linux/
+      - name: Download deb package
+        uses: actions/download-artifact@v4
+        with:
+          name: XboxBatteryMonitor-deb-${{ needs.version.outputs.semver }}
+          path: .
+      - name: Download pacman package
+        uses: actions/download-artifact@v4
+        with:
+          name: XboxBatteryMonitor-pacman-${{ needs.version.outputs.semver }}
+          path: .
       - name: Create archives
         run: |
           cd artifacts/windows
@@ -94,7 +154,9 @@ jobs:
 
             ### Downloads
             - **Windows**: XboxBatteryMonitor-Windows-${{ needs.version.outputs.semver }}.zip
-            - **Linux**: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.tar.gz
+            - **Linux (tar.gz)**: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.tar.gz
+            - **Linux (deb)**: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.deb
+            - **Linux (pacman)**: XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.pkg.tar.zst
 
             ### Features
             - Native AOT compilation for improved performance
@@ -109,5 +171,7 @@ jobs:
           files: |
             XboxBatteryMonitor-Windows-${{ needs.version.outputs.semver }}.zip
             XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.tar.gz
+            XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.deb
+            XboxBatteryMonitor-Linux-${{ needs.version.outputs.semver }}.pkg.tar.zst
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
