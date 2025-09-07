@@ -6,7 +6,6 @@ using System.ComponentModel;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.ValueObjects;
 using XboxBatteryMonitor.ViewModels;
-using XboxBatteryMonitor.Models;
 using Avalonia.Styling;
 using Avalonia.Media.Imaging;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -31,9 +30,9 @@ public partial class MainWindow : Window
         _settings = settings;
         InitializeComponent();
 
-        this.PropertyChanged += MainWindow_PropertyChanged;
-        this.Opened += MainWindow_Opened;
-        this.Closing += MainWindow_Closing;
+        PropertyChanged += MainWindow_PropertyChanged;
+        Opened += MainWindow_Opened;
+        Closing += MainWindow_Closing;
 
         UpdateWindowIcon();
 
@@ -51,7 +50,7 @@ public partial class MainWindow : Window
         Height = settings.WindowHeight;
 
         // Validate position is within screen bounds or if not set (default -1)
-        var screens = this.Screens;
+        var screens = Screens;
         bool validPosition = settings.WindowX != -1 && settings.WindowY != -1;
         if (validPosition)
         {
@@ -89,9 +88,9 @@ public partial class MainWindow : Window
         _trayIcon.IsVisible = true;
         _trayIcon.Clicked += (sender, e) =>
         {
-            this.Show();
-            this.WindowState = WindowState.Normal;
-            this.Activate();
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
         };
 
         // Setup tray menu
@@ -99,9 +98,9 @@ public partial class MainWindow : Window
         var openItem = new NativeMenuItem { Header = "Open Main Window" };
         openItem.Click += (sender, e) =>
         {
-            this.Show();
-            this.WindowState = WindowState.Normal;
-            this.Activate();
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
         };
         var exitItem = new NativeMenuItem { Header = "Exit" };
         exitItem.Click += (sender, e) =>
@@ -109,7 +108,7 @@ public partial class MainWindow : Window
             _trayIcon?.Dispose();
             _isShutdown = true;
             Close();
-            this._viewModel.Dispose();
+            _viewModel.Dispose();
             if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
             {
                 desktopLifetime.Shutdown();
@@ -185,11 +184,11 @@ public partial class MainWindow : Window
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if (!_isShutdown)
+        if (!_isShutdown && WindowState != WindowState.Minimized)
         {
             e.Cancel = true;
-            this.WindowState = WindowState.Minimized;
-            this.Hide();
+            WindowState = WindowState.Minimized;
+            Hide();
         }
     }
 
@@ -238,7 +237,7 @@ public partial class MainWindow : Window
         var uri = new Uri($"avares://XboxBatteryMonitor/Assets/icons/{theme}/battery_normal.png");
         using var stream = AssetLoader.Open(uri);
         var bitmap = new Bitmap(stream);
-        this.Icon = new WindowIcon(bitmap);
+        Icon = new WindowIcon(bitmap);
     }
 
     private static string GetIconName(BatteryLevel level, bool isCharging, bool isConnected)
