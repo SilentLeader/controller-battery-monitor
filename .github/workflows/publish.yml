@@ -64,7 +64,7 @@ jobs:
           mkdir -p staging/usr/bin
           mkdir -p staging/usr/share/icons/hicolor/256x256/apps
           mkdir -p staging/usr/share/applications
-          cp src/XboxBatteryMonitor/bin/Release/net9.0/linux-x64/publish/XboxBatteryMonitor staging/usr/bin/
+          cp -r src/XboxBatteryMonitor/bin/Release/net9.0/linux-x64/publish/* staging/usr/bin/
           cp src/XboxBatteryMonitor/Assets/icons/app.png staging/usr/share/icons/hicolor/256x256/apps/xbox-battery-monitor.png
           cat > staging/usr/share/applications/xbox-battery-monitor.desktop << EOF
           [Desktop Entry]
