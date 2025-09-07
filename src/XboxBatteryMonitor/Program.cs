@@ -4,7 +4,7 @@ using XboxBatteryMonitor.Services;
 
 namespace XboxBatteryMonitor;
 
-class Program
+static class Program
 {
     public static SingleInstanceService? SingleInstanceService => _singleInstanceService;
     private static SingleInstanceService? _singleInstanceService;
