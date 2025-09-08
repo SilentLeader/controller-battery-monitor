@@ -10,7 +10,38 @@ A cross-platform Avalonia UI application for monitoring Xbox controller battery 
 - Charging status indication
 - Simple GUI interface
 
-## Building and Running
+## Installation
+
+### Pre-built Packages
+
+Download the latest release from [GitHub Releases](https://github.com/SilentLeader/controller-battery-monitor/releases).
+
+#### Debian/Ubuntu (.deb)
+```bash
+sudo dpkg -i XboxBatteryMonitor-Linux-*.deb
+sudo apt-get install -f  # Install any missing dependencies
+```
+
+#### Arch Linux (.pkg.tar.zst)
+```bash
+sudo pacman -U XboxBatteryMonitor-Linux-*.pkg.tar.zst
+```
+
+#### Manual Installation (tar.gz)
+```bash
+tar -xzf XboxBatteryMonitor-Linux-*.tar.gz
+cd XboxBatteryMonitor-Linux-*
+# Copy files to appropriate locations or run directly
+```
+
+After installation, you can:
+- Launch from your desktop environment's application menu
+- Run `xbox-battery-monitor` from the command line
+- The application will appear in your system tray (if supported)
+
+### From Source
+
+#### Building and Running
 
 1. Ensure you have .NET 9.0 installed.
 2. Navigate to the project directory: `cd /mnt/data/Projects/ControllerMonitor/src/XboxBatteryMonitor`

@@ -120,6 +120,12 @@ public partial class MainWindow : Window
         menu.Items.Add(exitItem);
         _trayIcon.Menu = menu;
 
+        // Handle system shutdown to allow proper logout
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+        {
+            desktopLifetime.ShutdownRequested += (sender, e) => _isShutdown = true;
+        }
+
         // Attach to battery info changes
         _viewModel.ControllerInfo.BatteryInfo.PropertyChanged += BatteryInfo_PropertyChanged;
 
