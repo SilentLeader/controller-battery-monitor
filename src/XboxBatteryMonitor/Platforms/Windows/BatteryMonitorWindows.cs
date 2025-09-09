@@ -3,16 +3,16 @@ using System;
 using System.Runtime.InteropServices;
 #endif
 using System.Threading.Tasks;
-using XboxBatteryMonitor.Models;
+using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
 
 namespace XboxBatteryMonitor.Platforms.Windows;
 
 public class BatteryMonitorWindows : IBatteryMonitorService
 {
-    public async Task<BatteryInfo> GetBatteryInfoAsync()
+    public async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
     {
-        var batteryInfo = new BatteryInfo { IsConnected = false };
+        var batteryInfo = new BatteryInfoViewModel { IsConnected = false };
 
         await Task.Run(() => {
 #if WINDOWS

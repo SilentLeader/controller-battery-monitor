@@ -1,9 +1,9 @@
 using System.Threading.Tasks;
-using XboxBatteryMonitor.Models;
+using XboxBatteryMonitor.ViewModels;
 
 namespace XboxBatteryMonitor.Services;
 
 public interface IBatteryMonitorService
 {
-    Task<BatteryInfo> GetBatteryInfoAsync();
+    Task<BatteryInfoViewModel> GetBatteryInfoAsync();
 }

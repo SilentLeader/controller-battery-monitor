@@ -1,6 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
-using XboxBatteryMonitor.Models;
+using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.ValueObjects;
 
@@ -10,16 +10,16 @@ public class BatteryMonitorLinux : IBatteryMonitorService
 {
     private const string PowerSupplyPath = "/sys/class/power_supply/";
 
-    public async Task<BatteryInfo> GetBatteryInfoAsync()
+    public async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
     {
         var devicePath = FindXboxBatteryDevice();
         if (string.IsNullOrEmpty(devicePath))
         {
-            return new BatteryInfo { IsConnected = false };
+            return new BatteryInfoViewModel { IsConnected = false };
         }
 
         var (level, isCharging, capacity) = await ReadBatteryInfoAsync(devicePath);
-        return new BatteryInfo
+        return new BatteryInfoViewModel
         {
             Level = level,
             Capacity = capacity,

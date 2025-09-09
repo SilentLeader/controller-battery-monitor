@@ -1,9 +1,9 @@
 using CommunityToolkit.Mvvm.ComponentModel;
 using XboxBatteryMonitor.ValueObjects;
 
-namespace XboxBatteryMonitor.Models;
+namespace XboxBatteryMonitor.ViewModels;
 
-public partial class BatteryInfo : ObservableObject
+public partial class BatteryInfoViewModel : ObservableObject
 {
     [ObservableProperty]
     private BatteryLevel level = BatteryLevel.Unknown;

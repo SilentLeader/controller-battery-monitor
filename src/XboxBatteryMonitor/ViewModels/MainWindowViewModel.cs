@@ -3,7 +3,7 @@ using CommunityToolkit.Mvvm.Input;
 using System.Threading.Tasks;
 using System.Timers;
 using System.ComponentModel;
-using XboxBatteryMonitor.Models;
+using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.ValueObjects;
 using System;
@@ -20,7 +20,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private bool _previousIsCharging = false;
 
     [ObservableProperty]
-    private ControllerInfo controllerInfo = new();
+    private ControllerInfoViewModel controllerInfo = new();
 
     [ObservableProperty]
     private SettingsViewModel settings;
