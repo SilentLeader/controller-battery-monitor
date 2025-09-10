@@ -110,11 +110,17 @@ public class SingleInstanceService : IDisposable
                     }
                 }
             }
-            catch
+            catch (OperationCanceledException)
             {
-                // ignore
+                _logger.LogInformation("Pipe server cancelled");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Pipe server warning");
             }
         }
+
+        _logger.LogInformation("Pipe server down");
     }
 
     public void Dispose()
