@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using XboxBatteryMonitor.Windows;
+using Microsoft.Extensions.Logging;
 
 namespace XboxBatteryMonitor.Services;
 
@@ -14,12 +15,18 @@ public class SingleInstanceService : IDisposable
     private static readonly string MutexName = $"{Environment.UserName}_XboxBatteryMonitorSingleInstance";
     private static readonly string PipeName = $"{Environment.UserName}_XboxBatteryMonitorPipe";
 
+    private readonly ILogger<SingleInstanceService> _logger;
     private Mutex? _mutex;
     private Task? _pipeTask;
     private CancellationTokenSource? _cancellationTokenSource;
     private MainWindow? _mainWindow;
 
     public bool IsFirstInstance { get; private set; }
+
+    public SingleInstanceService(ILogger<SingleInstanceService> logger)
+    {
+        _logger = logger;
+    }
 
     public void SetMainWindow(MainWindow mainWindow)
     {
@@ -28,12 +35,18 @@ public class SingleInstanceService : IDisposable
 
     public bool TryAcquireSingleInstance()
     {
+        _logger.LogInformation("Attempting to acquire single instance mutex: {MutexName}", MutexName);
         _mutex = new Mutex(true, MutexName, out bool createdNew);
         IsFirstInstance = createdNew;
 
         if (IsFirstInstance)
         {
+            _logger.LogInformation("This is the first instance, starting pipe server");
             StartPipeServer();
+        }
+        else
+        {
+            _logger.LogInformation("Another instance is already running");
         }
 
         return IsFirstInstance;
@@ -43,6 +56,7 @@ public class SingleInstanceService : IDisposable
     {
         if (!IsFirstInstance)
         {
+            _logger.LogInformation("Attempting to bring existing window to front via pipe: {PipeName}", PipeName);
             try
             {
                 using (NamedPipeClientStream pipeClient = new NamedPipeClientStream(".", PipeName, PipeDirection.Out))
@@ -53,10 +67,11 @@ public class SingleInstanceService : IDisposable
                         writer.WriteLine("SHOW");
                     }
                 }
+                _logger.LogInformation("Successfully sent show command to existing instance");
             }
             catch
             {
-                // Pipe not available or connection failed
+                _logger.LogWarning("Failed to connect to existing instance pipe");
             }
         }
     }
@@ -81,6 +96,7 @@ public class SingleInstanceService : IDisposable
                         string? message = reader.ReadLine();
                         if (message == "SHOW")
                         {
+                            _logger.LogInformation("Received SHOW command, bringing window to front");
                             Dispatcher.UIThread.Invoke(() =>
                             {
                                 if (_mainWindow != null)

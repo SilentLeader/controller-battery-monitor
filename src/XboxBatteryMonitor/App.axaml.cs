@@ -3,6 +3,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.Windows;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace XboxBatteryMonitor;
 
@@ -17,9 +18,9 @@ public partial class App : Application
     {
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            var settingsService = new SettingsService();
+            var settingsService = Program.ServiceProvider!.GetRequiredService<SettingsService>();
             var settings = settingsService.LoadSettings();
-            var mainWindow = new MainWindow(settings);
+            var mainWindow = new MainWindow(settings, settingsService);
             desktop.MainWindow = mainWindow;
 
             // Set the MainWindow in the single instance service for window activation

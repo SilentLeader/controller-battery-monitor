@@ -10,6 +10,8 @@ using Avalonia.Styling;
 using Avalonia.Media.Imaging;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace XboxBatteryMonitor.Windows;
 
@@ -21,11 +23,15 @@ public partial class MainWindow : Window
     private SettingsViewModel _settings;
     private bool _isShutdown = false;
 
-    public MainWindow() : this(new SettingsViewModel())
+    public MainWindow() : this(new SettingsViewModel(), null)
     {
     }
 
-    public MainWindow(SettingsViewModel settings)
+    public MainWindow(SettingsViewModel settings) : this(settings, null)
+    {
+    }
+
+    public MainWindow(SettingsViewModel settings, SettingsService? settingsService)
     {
         _settings = settings;
         InitializeComponent();
@@ -39,7 +45,7 @@ public partial class MainWindow : Window
         // Use factory to create platform-specific service
         var service = BatteryMonitorFactory.CreatePlatformService();
         var notificationService = new NotificationService();
-        _viewModel = new MainWindowViewModel(service, settings, notificationService);
+        _viewModel = new MainWindowViewModel(service, settings, notificationService, settingsService ?? Program.ServiceProvider?.GetRequiredService<SettingsService>() ?? new SettingsService(NullLogger<SettingsService>.Instance));
         DataContext = _viewModel;
 
         notificationService.Initialize(this);
