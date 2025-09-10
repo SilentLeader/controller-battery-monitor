@@ -7,6 +7,7 @@ using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.ValueObjects;
 using System;
+using Avalonia.Threading;
 
 namespace XboxBatteryMonitor.ViewModels;
 
@@ -15,6 +16,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IBatteryMonitorService _batteryService;
     private readonly SettingsService _settingsService;
     private readonly INotificationService _notificationService;
+    private Timer _debounceTimer;
     private Timer _timer;
     private BatteryLevel _previousBatteryLevel = BatteryLevel.Unknown;
     private bool _previousIsCharging = false;
@@ -38,6 +40,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         _ = UpdateBatteryInfoAsync();
 
         _timer = new Timer(settings.UpdateFrequencySeconds * 1000);
+        _debounceTimer = new Timer(500);
+        _debounceTimer.AutoReset = false;
+        _debounceTimer.Elapsed += (s, e) => Dispatcher.UIThread.Post(() => _settingsService.SaveSettings(Settings));
         _timer.Elapsed += async (s, e) => await UpdateBatteryInfoAsync();
         _timer.Start();
     }
@@ -50,8 +55,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             _timer.Interval = Settings.UpdateFrequencySeconds * 1000;
             _timer.Start();
         }
-        // Auto-save settings on change
-        _settingsService.SaveSettings(Settings);
+        // Debounced auto-save settings on change
+        _debounceTimer.Stop();
+        _debounceTimer.Start();
     }
 
     [RelayCommand]
@@ -81,6 +87,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         _settingsService.SaveSettings(Settings);
     }
 
+                
     protected virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
@@ -89,6 +96,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 _timer.Stop();
                 _timer.Dispose();
+                _debounceTimer.Stop();
+                _debounceTimer.Dispose();
+                
             }
 
             disposedValue = true;

@@ -156,7 +156,6 @@ public partial class MainWindow : Window
         {
             _viewModel.Settings.WindowX = Position.X;
             _viewModel.Settings.WindowY = Position.Y;
-            _viewModel.SaveSettingsCommand.Execute(null);
         }
     }
 
@@ -166,7 +165,6 @@ public partial class MainWindow : Window
         {
             _viewModel.Settings.WindowWidth = Width;
             _viewModel.Settings.WindowHeight = Height;
-            _viewModel.SaveSettingsCommand.Execute(null);
         }
     }
 
