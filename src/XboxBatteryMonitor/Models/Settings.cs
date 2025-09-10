@@ -24,4 +24,13 @@ public class SettingsData
 
     [JsonPropertyName("hideTrayIconWhenDisconnected")]
     public bool HideTrayIconWhenDisconnected { get; set; } = false;
+
+    [JsonPropertyName("notifyOnControllerConnected")]
+    public bool NotifyOnControllerConnected { get; set; } = true;
+
+    [JsonPropertyName("notifyOnControllerDisconnected")]
+    public bool NotifyOnControllerDisconnected { get; set; } = true;
+
+    [JsonPropertyName("notifyOnBatteryLow")]
+    public bool NotifyOnBatteryLow { get; set; } = true;
 }

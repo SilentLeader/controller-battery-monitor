@@ -32,6 +32,9 @@
                     <NumericUpDown Value="{Binding Settings.UpdateFrequencySeconds}" Minimum="1" Maximum="60" Width="100" Margin="10,0,0,0" />
                 </StackPanel>
                 <CheckBox Content="Hide tray icon when controller disconnected" IsChecked="{Binding Settings.HideTrayIconWhenDisconnected}" Margin="0,10,0,0" />
+                <CheckBox Content="Show notification when controller connected" IsChecked="{Binding Settings.NotifyOnControllerConnected}" Margin="0,10,0,0" />
+                <CheckBox Content="Show notification when controller disconnected" IsChecked="{Binding Settings.NotifyOnControllerDisconnected}" Margin="0,10,0,0" />
+                <CheckBox Content="Show notification when battery is low" IsChecked="{Binding Settings.NotifyOnBatteryLow}" Margin="0,10,0,0" />
                 <Button Content="Save Settings" Command="{Binding SaveSettingsCommand}" Margin="0,20,0,0" HorizontalAlignment="Center" />
             </StackPanel>
         </TabItem>

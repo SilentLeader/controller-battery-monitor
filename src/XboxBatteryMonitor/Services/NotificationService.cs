@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
+using Avalonia.Threading;
 
 namespace XboxBatteryMonitor.Services;
 
@@ -15,7 +16,7 @@ public class NotificationService : INotificationService
 
     public Task ShowNotificationAsync(string title, string message)
     {
-        _notificationManager?.Show(new Notification(title, message, NotificationType.Warning));
+        Dispatcher.UIThread.Post(() => _notificationManager?.Show(new Notification(title, message, NotificationType.Warning)));
         return Task.CompletedTask;
     }
 }

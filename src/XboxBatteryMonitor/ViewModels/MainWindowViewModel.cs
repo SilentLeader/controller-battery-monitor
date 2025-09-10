@@ -21,6 +21,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private Timer _timer;
     private BatteryLevel _previousBatteryLevel = BatteryLevel.Unknown;
     private bool _previousIsCharging = false;
+    private bool _previousIsConnected = false;
 
     [ObservableProperty]
     private ControllerInfoViewModel controllerInfo = new();
@@ -77,8 +78,21 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         var batteryInfo = await _batteryService.GetBatteryInfoAsync();
 
+        // Check for controller connection/disconnection notifications
+        if (_previousIsConnected != batteryInfo.IsConnected)
+        {
+            if (batteryInfo.IsConnected && Settings.NotifyOnControllerConnected)
+            {
+                await _notificationService.ShowNotificationAsync("Controller Connected", "Xbox controller has been connected.");
+            }
+            else if (!batteryInfo.IsConnected && Settings.NotifyOnControllerDisconnected)
+            {
+                await _notificationService.ShowNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.");
+            }
+        }
+
         // Check for low battery notification
-        if (_previousBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging)
+        if (_previousBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && Settings.NotifyOnBatteryLow)
         {
             await _notificationService.ShowNotificationAsync("Low Battery", "Controller battery is low and not charging.");
         }
@@ -86,6 +100,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Update previous state
         _previousBatteryLevel = batteryInfo.Level;
         _previousIsCharging = batteryInfo.IsCharging;
+        _previousIsConnected = batteryInfo.IsConnected;
 
         ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
         ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;

@@ -18,6 +18,9 @@ public partial class SettingsViewModel : ObservableObject
         StartMinimized = _data.StartMinimized;
         UpdateFrequencySeconds = _data.UpdateFrequencySeconds;
         HideTrayIconWhenDisconnected = _data.HideTrayIconWhenDisconnected;
+        NotifyOnControllerConnected = _data.NotifyOnControllerConnected;
+        NotifyOnControllerDisconnected = _data.NotifyOnControllerDisconnected;
+        NotifyOnBatteryLow = _data.NotifyOnBatteryLow;
     }
 
     [ObservableProperty]
@@ -41,6 +44,15 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool hideTrayIconWhenDisconnected;
 
+    [ObservableProperty]
+    private bool notifyOnControllerConnected;
+
+    [ObservableProperty]
+    private bool notifyOnControllerDisconnected;
+
+    [ObservableProperty]
+    private bool notifyOnBatteryLow;
+
     // Method to convert back to SettingsData for serialization
     public SettingsData ToSettingsData()
     {
@@ -52,7 +64,10 @@ public partial class SettingsViewModel : ObservableObject
             WindowHeight = WindowHeight,
             StartMinimized = StartMinimized,
             UpdateFrequencySeconds = UpdateFrequencySeconds,
-            HideTrayIconWhenDisconnected = HideTrayIconWhenDisconnected
+            HideTrayIconWhenDisconnected = HideTrayIconWhenDisconnected,
+            NotifyOnControllerConnected = NotifyOnControllerConnected,
+            NotifyOnControllerDisconnected = NotifyOnControllerDisconnected,
+            NotifyOnBatteryLow = NotifyOnBatteryLow
         };
     }
 }
