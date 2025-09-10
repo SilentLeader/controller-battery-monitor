@@ -7,6 +7,7 @@ using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.ValueObjects;
 using System;
+using System.Reflection;
 using Avalonia.Threading;
 
 namespace XboxBatteryMonitor.ViewModels;
@@ -26,6 +27,16 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     [ObservableProperty]
     private SettingsViewModel settings;
+
+    [ObservableProperty]
+    private string appName = "Xbox Battery Monitor";
+
+    [ObservableProperty]
+    private string appDescription = "A simple application to monitor Xbox controller battery levels.";
+
+    [ObservableProperty]
+    private string appVersion;
+
     private bool disposedValue;
 
     public bool IsCapacityVisible => ControllerInfo.BatteryInfo.Capacity != null;
@@ -37,6 +48,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         _notificationService = notificationService;
         Settings = settings;
         Settings.PropertyChanged += Settings_PropertyChanged;
+        AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
         _ = UpdateBatteryInfoAsync();
 
         _timer = new Timer(settings.UpdateFrequencySeconds * 1000);
