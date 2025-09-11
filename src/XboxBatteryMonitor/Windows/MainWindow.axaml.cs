@@ -10,6 +10,7 @@ using Avalonia.Styling;
 using Avalonia.Media.Imaging;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace XboxBatteryMonitor.Windows;
 
@@ -20,6 +21,10 @@ public partial class MainWindow : Window
     private NativeMenuItem? _statusMenuItem;
     private SettingsViewModel _settings;
     private bool _isShutdown = false;
+
+    public MainWindow() : this(Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>(), new SettingsViewModel(), new NotificationService())
+    {
+    }
 
     public MainWindow(MainWindowViewModel viewModel, SettingsViewModel settings, INotificationService notificationService)
     {

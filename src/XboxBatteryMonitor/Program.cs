@@ -6,6 +6,9 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Windows;
+using System.Runtime.InteropServices;
+using XboxBatteryMonitor.Platforms.Windows;
+using XboxBatteryMonitor.Platforms.Linux;
 
 namespace XboxBatteryMonitor;
 
@@ -26,30 +29,7 @@ static class Program
             .CreateLogger();
 
         // Set up dependency injection
-        var services = new ServiceCollection();
-        services.AddLogging(loggingBuilder =>
-        {
-            loggingBuilder.ClearProviders();
-            loggingBuilder.AddSerilog();
-        });
-        services.AddSingleton<SettingsService>();
-        services.AddSingleton<SingleInstanceService>();
-
-        // Register platform battery service via factory so DI can resolve it
-        services.AddSingleton(_ => BatteryMonitorFactory.CreatePlatformService());
-
-        // Register notification service implementation
-        services.AddSingleton<INotificationService, NotificationService>();
-
-        // Load settings into a singleton SettingsViewModel so all consumers share same instance
-        services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().LoadSettings());
-
-        // Register viewmodel and window so they can be resolved from DI
-        services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<MainWindow>();
-
-        // Add other services as needed
-        ServiceProvider = services.BuildServiceProvider();
+        ServiceProvider = RegisterServices();
 
         using (_singleInstanceService = ServiceProvider.GetRequiredService<SingleInstanceService>())
         {
@@ -64,6 +44,40 @@ static class Program
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
         }
+    }
+
+    private static ServiceProvider RegisterServices()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.ClearProviders();
+            loggingBuilder.AddSerilog();
+        });
+        services.AddSingleton<SettingsService>();
+        services.AddSingleton<SingleInstanceService>();
+
+        // Platfrom specific service registration
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+        {
+            services.AddSingleton<IBatteryMonitorService, BatteryMonitorWindows>();
+        }
+        else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+        {
+            services.AddSingleton<IBatteryMonitorService, BatteryMonitorLinux>();
+        }
+
+        // Register notification service implementation
+        services.AddSingleton<INotificationService, NotificationService>();
+
+        // Load settings into a singleton SettingsViewModel so all consumers share same instance
+        services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().LoadSettings());
+
+        // Register viewmodel and window so they can be resolved from DI
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<MainWindow>();
+
+        return services.BuildServiceProvider();
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
