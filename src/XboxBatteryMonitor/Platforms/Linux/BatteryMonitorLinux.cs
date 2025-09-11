@@ -54,7 +54,7 @@ public class BatteryMonitorLinux : IBatteryMonitorService
                 if (line.StartsWith("POWER_SUPPLY_MODEL_NAME="))
                 {
                     var model = line.Substring("POWER_SUPPLY_MODEL_NAME=".Length);
-                    if (model.ToLower().Contains("xbox") && model.ToLower().Contains("controller"))
+                    if (model.Contains("xbox", System.StringComparison.CurrentCultureIgnoreCase) && model.Contains("controller", System.StringComparison.CurrentCultureIgnoreCase))
                     {
                         return devicePath;
                     }
