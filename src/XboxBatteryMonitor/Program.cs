@@ -18,7 +18,6 @@ static class Program
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
-    [STAThread]
     public static void Main(string[] args)
     {
         // Configure Serilog
@@ -37,13 +36,13 @@ static class Program
         services.AddSingleton<SingleInstanceService>();
 
         // Register platform battery service via factory so DI can resolve it
-        services.AddSingleton<IBatteryMonitorService>(sp => BatteryMonitorFactory.CreatePlatformService());
+        services.AddSingleton(_ => BatteryMonitorFactory.CreatePlatformService());
 
         // Register notification service implementation
         services.AddSingleton<INotificationService, NotificationService>();
 
         // Load settings into a singleton SettingsViewModel so all consumers share same instance
-        services.AddSingleton<SettingsViewModel>(sp => sp.GetRequiredService<SettingsService>().LoadSettings());
+        services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().LoadSettings());
 
         // Register viewmodel and window so they can be resolved from DI
         services.AddSingleton<MainWindowViewModel>();

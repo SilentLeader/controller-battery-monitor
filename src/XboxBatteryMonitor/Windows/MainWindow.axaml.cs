@@ -10,8 +10,6 @@ using Avalonia.Styling;
 using Avalonia.Media.Imaging;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace XboxBatteryMonitor.Windows;
 
@@ -23,15 +21,7 @@ public partial class MainWindow : Window
     private SettingsViewModel _settings;
     private bool _isShutdown = false;
 
-    public MainWindow() : this(new SettingsViewModel(), null, null, null)
-    {
-    }
-
-    public MainWindow(SettingsViewModel settings) : this(settings, null, null, null)
-    {
-    }
-
-    public MainWindow(SettingsViewModel settings, SettingsService? settingsService, IBatteryMonitorService? batteryService = null, INotificationService? notificationService = null)
+    public MainWindow(MainWindowViewModel viewModel, SettingsViewModel settings, INotificationService notificationService)
     {
         _settings = settings;
         InitializeComponent();
@@ -42,14 +32,10 @@ public partial class MainWindow : Window
 
         UpdateWindowIcon();
 
-        // Resolve services from DI if not provided
-        var resolvedBatteryService = batteryService ?? Program.ServiceProvider?.GetRequiredService<IBatteryMonitorService>() ?? BatteryMonitorFactory.CreatePlatformService();
-        var resolvedNotificationService = notificationService ?? Program.ServiceProvider?.GetRequiredService<INotificationService>() ?? new NotificationService();
-
-        _viewModel = new MainWindowViewModel(resolvedBatteryService, settings, resolvedNotificationService, settingsService ?? Program.ServiceProvider?.GetRequiredService<SettingsService>() ?? new SettingsService(NullLogger<SettingsService>.Instance));
+        _viewModel = viewModel;
         DataContext = _viewModel;
 
-        resolvedNotificationService.Initialize(this);
+        notificationService.Initialize(this);
 
         // Apply settings
         Position = new PixelPoint((int)settings.WindowX, (int)settings.WindowY);
