@@ -76,36 +76,53 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [RelayCommand]
     private async Task UpdateBatteryInfoAsync()
     {
-        var batteryInfo = await _batteryService.GetBatteryInfoAsync();
-
-        // Check for controller connection/disconnection notifications
-        if (_previousIsConnected != batteryInfo.IsConnected)
+        try
         {
-            if (batteryInfo.IsConnected && Settings.NotifyOnControllerConnected)
-            {
-                await _notificationService.ShowNotificationAsync("Controller Connected", "Xbox controller has been connected.");
-            }
-            else if (!batteryInfo.IsConnected && Settings.NotifyOnControllerDisconnected)
-            {
-                await _notificationService.ShowNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.");
-            }
-        }
+            var batteryInfo = await _batteryService.GetBatteryInfoAsync();
 
-        // Check for low battery notification
-        if (_previousBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && Settings.NotifyOnBatteryLow)
+            // Capture previous state locally to make notification decisions off the UI thread
+            var prevIsConnected = _previousIsConnected;
+            var prevBatteryLevel = _previousBatteryLevel;
+
+            // Use a local reference to settings for thread-safety of lookups
+            var settings = Settings;
+
+            // Check for controller connection/disconnection notifications (safe to call off UI thread because NotificationService posts to UI thread)
+            if (prevIsConnected != batteryInfo.IsConnected)
+            {
+                if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
+                {
+                    await _notificationService.ShowNotificationAsync("Controller Connected", "Xbox controller has been connected.");
+                }
+                else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
+                {
+                    await _notificationService.ShowNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.");
+                }
+            }
+
+            // Check for low battery notification
+            if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
+            {
+                await _notificationService.ShowNotificationAsync("Low Battery", "Controller battery is low and not charging.");
+            }
+
+            // Update previous state and view-model properties on the UI thread to avoid affinity violations
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _previousBatteryLevel = batteryInfo.Level;
+                _previousIsCharging = batteryInfo.IsCharging;
+                _previousIsConnected = batteryInfo.IsConnected;
+
+                ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
+                ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
+                ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
+                ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
+            });
+        }
+        catch
         {
-            await _notificationService.ShowNotificationAsync("Low Battery", "Controller battery is low and not charging.");
+            // Swallow exceptions to avoid crashes from timer callbacks; could be logged if logger is available
         }
-
-        // Update previous state
-        _previousBatteryLevel = batteryInfo.Level;
-        _previousIsCharging = batteryInfo.IsCharging;
-        _previousIsConnected = batteryInfo.IsConnected;
-
-        ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
-        ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
-        ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
-        ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
     }
 
     [RelayCommand]
