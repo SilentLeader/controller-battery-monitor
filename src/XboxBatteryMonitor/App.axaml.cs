@@ -5,31 +5,31 @@ using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.Windows;
 using Microsoft.Extensions.DependencyInjection;
 
-namespace XboxBatteryMonitor;
-
-public partial class App : Application
+namespace XboxBatteryMonitor
 {
-    public override void Initialize()
+    public partial class App : Application
     {
-        AvaloniaXamlLoader.Load(this);
-    }
-
-    public override void OnFrameworkInitializationCompleted()
-    {
-        if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+        public override void Initialize()
         {
-            var settingsService = Program.ServiceProvider!.GetRequiredService<SettingsService>();
-            var settings = settingsService.LoadSettings();
-            var mainWindow = new MainWindow(settings, settingsService);
-            desktop.MainWindow = mainWindow;
-
-            // Set the MainWindow in the single instance service for window activation
-            if (Program.SingleInstanceService != null)
-            {
-                Program.SingleInstanceService.SetMainWindow(mainWindow);
-            }
+            AvaloniaXamlLoader.Load(this);
         }
 
-        base.OnFrameworkInitializationCompleted();
+        public override void OnFrameworkInitializationCompleted()
+        {
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+            {
+                // Resolve main window from DI container
+                var mainWindow = Program.ServiceProvider!.GetRequiredService<MainWindow>();
+                desktop.MainWindow = mainWindow;
+
+                // Set the MainWindow in the single instance service for window activation
+                if (Program.SingleInstanceService != null)
+                {
+                    Program.SingleInstanceService.SetMainWindow(mainWindow);
+                }
+            }
+
+            base.OnFrameworkInitializationCompleted();
+        }
     }
 }

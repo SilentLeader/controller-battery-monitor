@@ -4,6 +4,8 @@ using XboxBatteryMonitor.Services;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using XboxBatteryMonitor.ViewModels;
+using XboxBatteryMonitor.Windows;
 
 namespace XboxBatteryMonitor;
 
@@ -33,6 +35,20 @@ static class Program
         });
         services.AddSingleton<SettingsService>();
         services.AddSingleton<SingleInstanceService>();
+
+        // Register platform battery service via factory so DI can resolve it
+        services.AddSingleton<IBatteryMonitorService>(sp => BatteryMonitorFactory.CreatePlatformService());
+
+        // Register notification service implementation
+        services.AddSingleton<INotificationService, NotificationService>();
+
+        // Load settings into a singleton SettingsViewModel so all consumers share same instance
+        services.AddSingleton<SettingsViewModel>(sp => sp.GetRequiredService<SettingsService>().LoadSettings());
+
+        // Register viewmodel and window so they can be resolved from DI
+        services.AddSingleton<MainWindowViewModel>();
+        services.AddSingleton<MainWindow>();
+
         // Add other services as needed
         ServiceProvider = services.BuildServiceProvider();
 

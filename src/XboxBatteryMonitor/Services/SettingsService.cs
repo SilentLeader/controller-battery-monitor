@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Text.Json;
+using System.Threading.Tasks;
 using XboxBatteryMonitor.Models;
 using XboxBatteryMonitor.ViewModels;
 using Microsoft.Extensions.Logging;
@@ -26,7 +27,7 @@ public class SettingsService
         });
     }
 
-    public SettingsViewModel LoadSettings()
+    public async Task<SettingsViewModel> LoadSettingsAsync()
     {
         _logger.LogInformation("Loading settings from {Path}", _settingsFilePath);
         if (!File.Exists(_settingsFilePath))
@@ -35,18 +36,44 @@ public class SettingsService
             return new SettingsViewModel();
         }
 
-        var json = File.ReadAllText(_settingsFilePath);
-        var data = JsonSerializer.Deserialize(json, _jsonContext.SettingsData) ?? new SettingsData();
-        _logger.LogInformation("Settings loaded successfully");
-        return new SettingsViewModel(data);
+        try
+        {
+            var json = await File.ReadAllTextAsync(_settingsFilePath).ConfigureAwait(false);
+            var data = JsonSerializer.Deserialize(json, _jsonContext.SettingsData) ?? new SettingsData();
+            _logger.LogInformation("Settings loaded successfully");
+            return new SettingsViewModel(data);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to load settings, returning defaults");
+            return new SettingsViewModel();
+        }
+    }
+
+    public async Task SaveSettingsAsync(SettingsViewModel settings)
+    {
+        _logger.LogInformation("Saving settings to {Path}", _settingsFilePath);
+        try
+        {
+            var data = settings.ToSettingsData();
+            var json = JsonSerializer.Serialize(data, _jsonContext.SettingsData);
+            await File.WriteAllTextAsync(_settingsFilePath, json).ConfigureAwait(false);
+            _logger.LogInformation("Settings saved successfully");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to save settings");
+        }
+    }
+
+    // Keep synchronous wrappers for compatibility
+    public SettingsViewModel LoadSettings()
+    {
+        return LoadSettingsAsync().GetAwaiter().GetResult();
     }
 
     public void SaveSettings(SettingsViewModel settings)
     {
-        _logger.LogInformation("Saving settings to {Path}", _settingsFilePath);
-        var data = settings.ToSettingsData();
-        var json = JsonSerializer.Serialize(data, _jsonContext.SettingsData);
-        File.WriteAllText(_settingsFilePath, json);
-        _logger.LogInformation("Settings saved successfully");
+        SaveSettingsAsync(settings).GetAwaiter().GetResult();
     }
 }

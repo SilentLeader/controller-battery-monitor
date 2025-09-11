@@ -23,15 +23,15 @@ public partial class MainWindow : Window
     private SettingsViewModel _settings;
     private bool _isShutdown = false;
 
-    public MainWindow() : this(new SettingsViewModel(), null)
+    public MainWindow() : this(new SettingsViewModel(), null, null, null)
     {
     }
 
-    public MainWindow(SettingsViewModel settings) : this(settings, null)
+    public MainWindow(SettingsViewModel settings) : this(settings, null, null, null)
     {
     }
 
-    public MainWindow(SettingsViewModel settings, SettingsService? settingsService)
+    public MainWindow(SettingsViewModel settings, SettingsService? settingsService, IBatteryMonitorService? batteryService = null, INotificationService? notificationService = null)
     {
         _settings = settings;
         InitializeComponent();
@@ -42,13 +42,14 @@ public partial class MainWindow : Window
 
         UpdateWindowIcon();
 
-        // Use factory to create platform-specific service
-        var service = BatteryMonitorFactory.CreatePlatformService();
-        var notificationService = new NotificationService();
-        _viewModel = new MainWindowViewModel(service, settings, notificationService, settingsService ?? Program.ServiceProvider?.GetRequiredService<SettingsService>() ?? new SettingsService(NullLogger<SettingsService>.Instance));
+        // Resolve services from DI if not provided
+        var resolvedBatteryService = batteryService ?? Program.ServiceProvider?.GetRequiredService<IBatteryMonitorService>() ?? BatteryMonitorFactory.CreatePlatformService();
+        var resolvedNotificationService = notificationService ?? Program.ServiceProvider?.GetRequiredService<INotificationService>() ?? new NotificationService();
+
+        _viewModel = new MainWindowViewModel(resolvedBatteryService, settings, resolvedNotificationService, settingsService ?? Program.ServiceProvider?.GetRequiredService<SettingsService>() ?? new SettingsService(NullLogger<SettingsService>.Instance));
         DataContext = _viewModel;
 
-        notificationService.Initialize(this);
+        resolvedNotificationService.Initialize(this);
 
         // Apply settings
         Position = new PixelPoint((int)settings.WindowX, (int)settings.WindowY);

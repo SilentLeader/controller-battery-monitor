@@ -9,6 +9,8 @@ using XboxBatteryMonitor.ValueObjects;
 using System;
 using System.Reflection;
 using Avalonia.Threading;
+using System.Threading;
+using Microsoft.Extensions.Logging;
 
 namespace XboxBatteryMonitor.ViewModels;
 
@@ -17,11 +19,13 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IBatteryMonitorService _batteryService;
     private readonly SettingsService _settingsService;
     private readonly INotificationService _notificationService;
-    private Timer _debounceTimer;
-    private Timer _timer;
+    private CancellationTokenSource _cts = new();
+    private PeriodicTimer? _periodicTimer;
+    private System.Timers.Timer _debounceTimer;
     private BatteryLevel _previousBatteryLevel = BatteryLevel.Unknown;
     private bool _previousIsCharging = false;
     private bool _previousIsConnected = false;
+    private readonly ILogger<MainWindowViewModel>? _logger;
 
     [ObservableProperty]
     private ControllerInfoViewModel controllerInfo = new();
@@ -42,35 +46,72 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool IsCapacityVisible => ControllerInfo.BatteryInfo.Capacity != null;
 
-    public MainWindowViewModel(IBatteryMonitorService batteryService, SettingsViewModel settings, INotificationService notificationService, SettingsService settingsService)
+    public MainWindowViewModel(IBatteryMonitorService batteryService, SettingsViewModel settings, INotificationService notificationService, SettingsService settingsService, ILogger<MainWindowViewModel>? logger = null)
     {
         _batteryService = batteryService;
         _settingsService = settingsService;
         _notificationService = notificationService;
+        _logger = logger;
         Settings = settings;
         Settings.PropertyChanged += Settings_PropertyChanged;
         AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
-        _ = UpdateBatteryInfoAsync();
 
-        _timer = new Timer(settings.UpdateFrequencySeconds * 1000);
-        _debounceTimer = new Timer(500);
+        _debounceTimer = new System.Timers.Timer(500);
         _debounceTimer.AutoReset = false;
         _debounceTimer.Elapsed += (s, e) => Dispatcher.UIThread.Post(() => _settingsService.SaveSettings(Settings));
-        _timer.Elapsed += async (s, e) => await UpdateBatteryInfoAsync();
-        _timer.Start();
+
+        StartPeriodicUpdate(Settings.UpdateFrequencySeconds);
     }
 
     private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Settings.UpdateFrequencySeconds))
         {
-            _timer.Stop();
-            _timer.Interval = Settings.UpdateFrequencySeconds * 1000;
-            _timer.Start();
+            // Restart periodic timer with new interval
+            StartPeriodicUpdate(Settings.UpdateFrequencySeconds);
         }
         // Debounced auto-save settings on change
         _debounceTimer.Stop();
         _debounceTimer.Start();
+    }
+
+    private void StartPeriodicUpdate(int updateFrequencySeconds)
+    {
+        // Cancel any existing loop
+        _cts.Cancel();
+        _cts = new CancellationTokenSource();
+        _periodicTimer?.Dispose();
+
+        if (updateFrequencySeconds <= 0)
+            updateFrequencySeconds = 5;
+
+        _periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(updateFrequencySeconds));
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                while (await _periodicTimer.WaitForNextTickAsync(_cts.Token))
+                {
+                    try
+                    {
+                        await UpdateBatteryInfoAsync();
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogWarning(ex, "Error while updating battery info");
+                    }
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // expected on shutdown
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Periodic battery update loop failed");
+            }
+        });
     }
 
     [RelayCommand]
@@ -119,9 +160,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
                 ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
             });
         }
-        catch
+        catch (Exception ex)
         {
-            // Swallow exceptions to avoid crashes from timer callbacks; could be logged if logger is available
+            _logger?.LogWarning(ex, "Failed to update battery info");
         }
     }
 
@@ -138,11 +179,10 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (disposing)
             {
-                _timer.Stop();
-                _timer.Dispose();
+                _periodicTimer?.Dispose();
+                _cts.Cancel();
                 _debounceTimer.Stop();
                 _debounceTimer.Dispose();
-                
             }
 
             disposedValue = true;
