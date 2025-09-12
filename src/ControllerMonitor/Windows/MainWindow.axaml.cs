@@ -140,7 +140,6 @@ public partial class MainWindow : Window
         // Attach to window events for saving position/size
         PositionChanged += MainWindow_PositionChanged;
         SizeChanged += MainWindow_SizeChanged;
-        Closed += MainWindow_Closed;
     }
 
     private void MainWindow_PositionChanged(object? sender, EventArgs e)
@@ -158,14 +157,6 @@ public partial class MainWindow : Window
         {
             _viewModel.Settings.WindowWidth = Width;
             _viewModel.Settings.WindowHeight = Height;
-        }
-    }
-
-    private void MainWindow_Closed(object? sender, EventArgs e)
-    {
-        if (_viewModel != null)
-        {
-            _viewModel.SaveSettingsCommand.Execute(null);
         }
     }
 

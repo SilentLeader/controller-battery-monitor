@@ -135,13 +135,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
         });
     }
-
-    [RelayCommand]
-    private void SaveSettings()
-    {
-        _settingsService.SaveSettings(Settings.ToSettingsData());
-    }
-
                 
     protected virtual void Dispose(bool disposing)
     {
