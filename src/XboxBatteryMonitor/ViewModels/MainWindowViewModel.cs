@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.Logging;
 using XboxBatteryMonitor.Services;
+using XboxBatteryMonitor.Interfaces;
 using XboxBatteryMonitor.ValueObjects;
 
 namespace XboxBatteryMonitor.ViewModels;
@@ -150,7 +151,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 _debounceTimer.Stop();
                 _debounceTimer.Dispose();
-                _ = Task.Run(async () =>
+                _ = Task.Run(() =>
                 {
                     try
                     {

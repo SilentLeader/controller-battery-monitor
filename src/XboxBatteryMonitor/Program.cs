@@ -1,6 +1,7 @@
 using Avalonia;
 using System;
 using XboxBatteryMonitor.Services;
+using XboxBatteryMonitor.Interfaces;
 using Serilog;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;

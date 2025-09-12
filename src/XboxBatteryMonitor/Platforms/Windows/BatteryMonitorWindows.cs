@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
+using XboxBatteryMonitor.Interfaces;
 using Microsoft.Extensions.Logging;
 
 namespace XboxBatteryMonitor.Platforms.Windows;

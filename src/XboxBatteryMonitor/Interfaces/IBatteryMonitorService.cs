@@ -2,7 +2,7 @@ using System;
 using System.Threading.Tasks;
 using XboxBatteryMonitor.ViewModels;
 
-namespace XboxBatteryMonitor.Services;
+namespace XboxBatteryMonitor.Interfaces;
 
 public interface IBatteryMonitorService
 {

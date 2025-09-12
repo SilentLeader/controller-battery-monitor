@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 
 namespace XboxBatteryMonitor.Services;
 
+using XboxBatteryMonitor.Interfaces;
+
 public abstract class SettingsServiceBase : ISettingsService
 {
     private readonly ILogger<SettingsServiceBase> _logger;

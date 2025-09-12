@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using XboxBatteryMonitor.Services;
+using XboxBatteryMonitor.Interfaces;
 
 namespace XboxBatteryMonitor.Platforms.Linux
 {

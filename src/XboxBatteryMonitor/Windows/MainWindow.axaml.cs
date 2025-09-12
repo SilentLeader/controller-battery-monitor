@@ -4,6 +4,7 @@ using Avalonia.Platform;
 using System;
 using System.ComponentModel;
 using XboxBatteryMonitor.Services;
+using XboxBatteryMonitor.Interfaces;
 using XboxBatteryMonitor.ValueObjects;
 using XboxBatteryMonitor.ViewModels;
 using Avalonia.Styling;

@@ -7,6 +7,8 @@ using XboxBatteryMonitor.ViewModels;
 
 namespace XboxBatteryMonitor.Services;
 
+using XboxBatteryMonitor.Interfaces;
+
 public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDisposable
 {
     public event EventHandler<BatteryInfoViewModel?>? BatteryInfoChanged;

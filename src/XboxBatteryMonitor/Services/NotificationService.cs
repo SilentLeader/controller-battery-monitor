@@ -5,6 +5,8 @@ using Avalonia.Threading;
 
 namespace XboxBatteryMonitor.Services;
 
+using XboxBatteryMonitor.Interfaces;
+
 public class NotificationService : INotificationService
 {
     private WindowNotificationManager? _notificationManager;

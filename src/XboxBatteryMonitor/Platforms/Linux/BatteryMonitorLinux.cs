@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
+using XboxBatteryMonitor.Interfaces;
 using XboxBatteryMonitor.ValueObjects;
 using Microsoft.Extensions.Logging;
 
