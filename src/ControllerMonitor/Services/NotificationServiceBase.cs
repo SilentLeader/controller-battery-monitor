@@ -7,16 +7,16 @@ using AvaloniaNotificationType = Avalonia.Controls.Notifications.NotificationTyp
 
 namespace ControllerMonitor.Services;
 
-public class NotificationService : INotificationService
+public abstract class NotificationServiceBase : INotificationService
 {
     private WindowNotificationManager? _notificationManager;
 
-    public void Initialize(Window window)
+    public virtual void Initialize(Window window)
     {
         _notificationManager = new WindowNotificationManager(window);
     }
 
-    public Task ShowNotificationAsync(string title, string message, Interfaces.NotificationType type = Interfaces.NotificationType.Information)
+    public virtual Task ShowNotificationAsync(string title, string message, Interfaces.NotificationType type = Interfaces.NotificationType.Information)
     {
         var avaloniaType = type switch
         {
@@ -30,9 +30,5 @@ public class NotificationService : INotificationService
         return Task.CompletedTask;
     }
 
-    public Task ShowSystemNotificationAsync(string title, string message, Interfaces.NotificationType type = Interfaces.NotificationType.Information)
-    {
-        // Fallback to in-app notification for the default implementation
-        return ShowNotificationAsync(title, message, type);
-    }
+    public abstract Task ShowSystemNotificationAsync(string title, string message, Interfaces.NotificationType type = Interfaces.NotificationType.Information);
 }

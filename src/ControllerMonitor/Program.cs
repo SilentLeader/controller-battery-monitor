@@ -1,5 +1,6 @@
 using Avalonia;
 using System;
+using System.Linq;
 using ControllerMonitor.Services;
 using ControllerMonitor.Interfaces;
 using Serilog;
@@ -65,15 +66,28 @@ static class Program
         {
             services.AddSingleton<IBatteryMonitorService, BatteryMonitorWindows>();
             services.AddSingleton<ISettingsService, SettingsServiceWindows>();
+#if WINDOWS
+            services.AddSingleton<INotificationService, Platforms.Windows.NotificationServiceWindows>();
+#else
+            services.AddSingleton<INotificationService, NotificationService>();
+#endif
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             services.AddSingleton<IBatteryMonitorService, BatteryMonitorLinux>();
             services.AddSingleton<ISettingsService, SettingsServiceLinux>();
+#if LINUX
+            services.AddSingleton<INotificationService, Platforms.Linux.NotificationServiceLinux>();
+#else
+            services.AddSingleton<INotificationService, NotificationService>();
+#endif
         }
 
-        // Register notification service implementation
-        services.AddSingleton<INotificationService, NotificationService>();
+        // Fallback notification service if platform not detected
+        if (!services.Any(x => x.ServiceType == typeof(INotificationService)))
+        {
+            services.AddSingleton<INotificationService, NotificationService>();
+        }
 
         // Register viewmodel and window so they can be resolved from DI
         services.AddTransient(s => new SettingsViewModel(s.GetRequiredService<ISettingsService>().GetSettings()));
