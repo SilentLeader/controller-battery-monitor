@@ -15,8 +15,6 @@ namespace ControllerMonitor;
 
 static class Program
 {
-    public static SingleInstanceService? SingleInstanceService => _singleInstanceService;
-    private static SingleInstanceService? _singleInstanceService;
     public static IServiceProvider? ServiceProvider { get; private set; }
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -32,12 +30,12 @@ static class Program
         // Set up dependency injection
         ConfigureServices();
 
-        using (_singleInstanceService = ServiceProvider!.GetRequiredService<SingleInstanceService>())
+        using (var singleInstanceService = ServiceProvider!.GetRequiredService<SingleInstanceService>())
         {
-            if (!_singleInstanceService.TryAcquireSingleInstance())
+            if (!singleInstanceService.TryAcquireSingleInstance())
             {
                 // Another instance is running, bring it to front
-                _singleInstanceService.BringExistingWindowToFront();
+                singleInstanceService.BringExistingWindowToFront();
                 return;
             }
 

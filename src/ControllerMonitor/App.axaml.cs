@@ -3,6 +3,7 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using ControllerMonitor.Services;
 using ControllerMonitor.ViewModels;
 using ControllerMonitor.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,14 +28,12 @@ namespace ControllerMonitor
                 // Resolve services from DI container
                 _mainWindow = Program.ServiceProvider!.GetRequiredService<MainWindow>();
                 _viewModel = Program.ServiceProvider!.GetRequiredService<AppViewModel>();
+                var singleInstanceService = Program.ServiceProvider!.GetRequiredService<SingleInstanceService>();
 
                 desktop.MainWindow = _mainWindow;
 
                 // Set the MainWindow in the single instance service for window activation
-                if (Program.SingleInstanceService != null)
-                {
-                    Program.SingleInstanceService.SetMainWindow(_mainWindow);
-                }
+                singleInstanceService.SetMainWindow(_mainWindow);
 
                 // Set DataContext at Application level for bindings to work
                 if (_viewModel != null)
