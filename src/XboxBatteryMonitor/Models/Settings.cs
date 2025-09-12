@@ -1,8 +1,9 @@
+using System;
 using System.Text.Json.Serialization;
 
 namespace XboxBatteryMonitor.Models;
 
-public class SettingsData
+public class Settings
 {
     [JsonPropertyName("windowX")]
     public double WindowX { get; set; } = -1;
@@ -33,4 +34,9 @@ public class SettingsData
 
     [JsonPropertyName("notifyOnBatteryLow")]
     public bool NotifyOnBatteryLow { get; set; } = true;
+
+    public Settings ShallowCopy()
+    {
+        return (Settings)MemberwiseClone();
+    }
 }

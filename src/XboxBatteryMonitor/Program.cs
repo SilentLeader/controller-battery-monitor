@@ -29,9 +29,9 @@ static class Program
             .CreateLogger();
 
         // Set up dependency injection
-        ServiceProvider = RegisterServices();
+        ConfigureServices();
 
-        using (_singleInstanceService = ServiceProvider.GetRequiredService<SingleInstanceService>())
+        using (_singleInstanceService = ServiceProvider!.GetRequiredService<SingleInstanceService>())
         {
             if (!_singleInstanceService.TryAcquireSingleInstance())
             {
@@ -40,13 +40,18 @@ static class Program
                 return;
             }
 
+            var settingsService = ServiceProvider!.GetRequiredService<ISettingsService>();            
+            settingsService.LoadSettings();
+            var batteryMonitorService = ServiceProvider!.GetRequiredService<IBatteryMonitorService>();
+            batteryMonitorService.StartMonitoring();
+
             // This is the first instance, proceed with the application
             BuildAvaloniaApp()
                 .StartWithClassicDesktopLifetime(args);
         }
     }
 
-    private static ServiceProvider RegisterServices()
+    private static void ConfigureServices()
     {
         var services = new ServiceCollection();
         services.AddLogging(loggingBuilder =>
@@ -54,30 +59,29 @@ static class Program
             loggingBuilder.ClearProviders();
             loggingBuilder.AddSerilog();
         });
-        services.AddSingleton<SettingsService>();
         services.AddSingleton<SingleInstanceService>();
 
         // Platfrom specific service registration
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
             services.AddSingleton<IBatteryMonitorService, BatteryMonitorWindows>();
+            services.AddSingleton<ISettingsService, SettingsServiceWindows>();
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
             services.AddSingleton<IBatteryMonitorService, BatteryMonitorLinux>();
+            services.AddSingleton<ISettingsService, SettingsServiceLinux>();
         }
 
         // Register notification service implementation
         services.AddSingleton<INotificationService, NotificationService>();
 
-        // Load settings into a singleton SettingsViewModel so all consumers share same instance
-        services.AddSingleton(sp => sp.GetRequiredService<SettingsService>().LoadSettings());
-
         // Register viewmodel and window so they can be resolved from DI
+        services.AddTransient(s => new SettingsViewModel(s.GetRequiredService<ISettingsService>().GetSettings()));
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
 
-        return services.BuildServiceProvider();
+        ServiceProvider = services.BuildServiceProvider();
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

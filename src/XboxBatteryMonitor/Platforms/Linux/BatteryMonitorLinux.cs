@@ -1,34 +1,48 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.ValueObjects;
+using Microsoft.Extensions.Logging;
 
 namespace XboxBatteryMonitor.Platforms.Linux;
 
-public class BatteryMonitorLinux : IBatteryMonitorService
+public class BatteryMonitorLinux(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger) : BatteryMonitorServiceBase(settingsService, logger)
 {
     private const string PowerSupplyPath = "/sys/class/power_supply/";
+    private const string PowerSupplyModelName = "POWER_SUPPLY_MODEL_NAME=";
+    private const string PowerSupplyCapacity = "POWER_SUPPLY_CAPACITY=";
+    private const string PowerSupplyCapacityLevel = "POWER_SUPPLY_CAPACITY_LEVEL=";
+    private const string PowerSupplyStatus = "POWER_SUPPLY_STATUS=";
 
-    public async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
+    public override async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
     {
-        var devicePath = FindXboxBatteryDevice();
-        if (string.IsNullOrEmpty(devicePath))
+        try
         {
-            return new BatteryInfoViewModel { IsConnected = false };
-        }
+            var devicePath = FindXboxBatteryDevice();
+            if (string.IsNullOrEmpty(devicePath))
+            {
+                return new BatteryInfoViewModel { IsConnected = false };
+            }
 
-        var (level, isCharging, capacity) = await ReadBatteryInfoAsync(devicePath);
-        return new BatteryInfoViewModel
+            var (level, isCharging, capacity) = await ReadBatteryInfoAsync(devicePath);
+            return new BatteryInfoViewModel
+            {
+                Level = level,
+                Capacity = capacity,
+                IsCharging = isCharging,
+                IsConnected = true
+            };
+        }
+        catch (Exception ex)
         {
-            Level = level,
-            Capacity = capacity,
-            IsCharging = isCharging,
-            IsConnected = true
-        };
+            _logger.LogError(ex, "Get battery info failed");
+            throw;
+        }
     }
 
-    private string? FindXboxBatteryDevice()
+    private static string? FindXboxBatteryDevice()
     {
         if (!Directory.Exists(PowerSupplyPath))
             return null;
@@ -51,10 +65,10 @@ public class BatteryMonitorLinux : IBatteryMonitorService
             var lines = File.ReadAllLines(ueventPath);
             foreach (var line in lines)
             {
-                if (line.StartsWith("POWER_SUPPLY_MODEL_NAME="))
+                if (line.StartsWith(PowerSupplyModelName))
                 {
-                    var model = line.Substring("POWER_SUPPLY_MODEL_NAME=".Length);
-                    if (model.Contains("xbox", System.StringComparison.CurrentCultureIgnoreCase) && model.Contains("controller", System.StringComparison.CurrentCultureIgnoreCase))
+                    var model = line.Substring(PowerSupplyModelName.Length);
+                    if (model.Contains("controller", StringComparison.CurrentCultureIgnoreCase))
                     {
                         return devicePath;
                     }
@@ -64,7 +78,7 @@ public class BatteryMonitorLinux : IBatteryMonitorService
         return null;
     }
 
-    private async Task<(BatteryLevel level, bool isCharging, int? capacity)> ReadBatteryInfoAsync(string devicePath)
+    private static async Task<(BatteryLevel level, bool isCharging, int? capacity)> ReadBatteryInfoAsync(string devicePath)
     {
         var ueventPath = Path.Combine(devicePath, "uevent");
         var lines = await File.ReadAllLinesAsync(ueventPath);
@@ -73,9 +87,9 @@ public class BatteryMonitorLinux : IBatteryMonitorService
         bool isCharging = false;
         foreach (var line in lines)
         {
-            if (line.StartsWith("POWER_SUPPLY_CAPACITY="))
+            if (line.StartsWith(PowerSupplyCapacity))
             {
-                var capacityRaw = line.Substring("POWER_SUPPLY_CAPACITY=".Length);
+                var capacityRaw = line[PowerSupplyCapacity.Length..];
                 if (int.TryParse(capacityRaw, out int convertedCapacity))
                 {
                     capacity = convertedCapacity;
@@ -83,14 +97,14 @@ public class BatteryMonitorLinux : IBatteryMonitorService
                 }
             }
 
-            if (line.StartsWith("POWER_SUPPLY_CAPACITY_LEVEL"))
+            if (line.StartsWith(PowerSupplyCapacityLevel))
             {
-                level = ConvertBatteryLevel(line.Substring("POWER_SUPPLY_CAPACITY_LEVEL=".Length));
+                level = ConvertBatteryLevel(line[PowerSupplyCapacityLevel.Length..]);
             }
 
-            if (line.StartsWith("POWER_SUPPLY_STATUS="))
+            if (line.StartsWith(PowerSupplyStatus))
             {
-                var status = line.Substring("POWER_SUPPLY_STATUS=".Length).ToLower();
+                var status = line[PowerSupplyStatus.Length..].ToLower();
                 isCharging = status == "charging";
             }
         }

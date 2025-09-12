@@ -5,11 +5,11 @@ namespace XboxBatteryMonitor.ViewModels;
 
 public partial class SettingsViewModel : ObservableObject
 {
-    private SettingsData _data;
+    private Settings _data;
 
-    public SettingsViewModel(SettingsData? data = null)
+    public SettingsViewModel(Settings? data = null)
     {
-        _data = data ?? new SettingsData();
+        _data = data ?? new Settings();
         // Initialize observable properties from data
         WindowX = _data.WindowX;
         WindowY = _data.WindowY;
@@ -54,9 +54,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool notifyOnBatteryLow;
 
     // Method to convert back to SettingsData for serialization
-    public SettingsData ToSettingsData()
+    public Settings ToSettingsData()
     {
-        return new SettingsData
+        return new Settings
         {
             WindowX = WindowX,
             WindowY = WindowY,

@@ -3,7 +3,7 @@ using XboxBatteryMonitor.Models;
 
 namespace XboxBatteryMonitor.Services;
 
-[JsonSerializable(typeof(SettingsData))]
+[JsonSerializable(typeof(Settings))]
 internal partial class SettingsJsonContext : JsonSerializerContext
 {
 }

@@ -1,29 +1,25 @@
-using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
+using System;
+using System.ComponentModel;
+using System.Reflection;
 using System.Threading.Tasks;
 using System.Timers;
-using System.ComponentModel;
-using XboxBatteryMonitor.ViewModels;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.Logging;
 using XboxBatteryMonitor.Services;
 using XboxBatteryMonitor.ValueObjects;
-using System;
-using System.Reflection;
-using Avalonia.Threading;
-using System.Threading;
-using Microsoft.Extensions.Logging;
 
 namespace XboxBatteryMonitor.ViewModels;
 
 public partial class MainWindowViewModel : ObservableObject, IDisposable
 {
     private readonly IBatteryMonitorService _batteryService;
-    private readonly SettingsService _settingsService;
+    private readonly ISettingsService _settingsService;
     private readonly INotificationService _notificationService;
-    private CancellationTokenSource _cts = new();
-    private PeriodicTimer? _periodicTimer;
     private System.Timers.Timer _debounceTimer;
     private BatteryLevel _previousBatteryLevel = BatteryLevel.Unknown;
-    private bool _previousIsCharging = false;
+    
     private bool _previousIsConnected = false;
     private readonly ILogger<MainWindowViewModel>? _logger;
 
@@ -46,7 +42,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool IsCapacityVisible => ControllerInfo.BatteryInfo.Capacity != null;
 
-    public MainWindowViewModel(IBatteryMonitorService batteryService, SettingsViewModel settings, INotificationService notificationService, SettingsService settingsService, ILogger<MainWindowViewModel>? logger = null)
+    public MainWindowViewModel(IBatteryMonitorService batteryService, SettingsViewModel settings, INotificationService notificationService, ISettingsService settingsService, ILogger<MainWindowViewModel>? logger = null)
     {
         _batteryService = batteryService;
         _settingsService = settingsService;
@@ -56,120 +52,93 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         Settings.PropertyChanged += Settings_PropertyChanged;
         AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
 
-        _debounceTimer = new System.Timers.Timer(500);
-        _debounceTimer.AutoReset = false;
-        _debounceTimer.Elapsed += (s, e) => Dispatcher.UIThread.Post(() => _settingsService.SaveSettings(Settings));
+        _debounceTimer = new Timer(500)
+        {
+            AutoReset = false
+        };
+        _debounceTimer.Elapsed += (s, e) => Dispatcher.UIThread.Post(() => _settingsService.SaveSettings(Settings.ToSettingsData()));
 
-        StartPeriodicUpdate(Settings.UpdateFrequencySeconds);
+        _batteryService.BatteryInfoChanged += OnBatteryInfoChanged;
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var initialInfo = await _batteryService.GetBatteryInfoAsync();
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    _previousBatteryLevel = initialInfo.Level;
+                    _previousIsConnected = initialInfo.IsConnected;
+
+                    ControllerInfo.BatteryInfo.Level = initialInfo.Level;
+                    ControllerInfo.BatteryInfo.Capacity = initialInfo.Capacity;
+                    ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
+                    ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Failed to start monitoring");
+            }
+        });
     }
 
     private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(Settings.UpdateFrequencySeconds))
         {
-            // Restart periodic timer with new interval
-            StartPeriodicUpdate(Settings.UpdateFrequencySeconds);
         }
         // Debounced auto-save settings on change
         _debounceTimer.Stop();
         _debounceTimer.Start();
     }
 
-    private void StartPeriodicUpdate(int updateFrequencySeconds)
+    private async void OnBatteryInfoChanged(object? sender, BatteryInfoViewModel? batteryInfo)
     {
-        // Cancel any existing loop
-        _cts.Cancel();
-        _cts = new CancellationTokenSource();
-        _periodicTimer?.Dispose();
+        if (batteryInfo == null) return;
 
-        if (updateFrequencySeconds <= 0)
-            updateFrequencySeconds = 5;
+        // Capture previous state locally to make notification decisions off the UI thread
+        var prevIsConnected = _previousIsConnected;
+        var prevBatteryLevel = _previousBatteryLevel;
 
-        _periodicTimer = new PeriodicTimer(TimeSpan.FromSeconds(updateFrequencySeconds));
+        // Use a local reference to settings for thread-safety of lookups
+        var settings = Settings;
 
-        _ = Task.Run(async () =>
+        // Check for controller connection/disconnection notifications (safe to call off UI thread because NotificationService posts to UI thread)
+        if (prevIsConnected != batteryInfo.IsConnected)
         {
-            try
+            if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
             {
-                while (await _periodicTimer.WaitForNextTickAsync(_cts.Token))
-                {
-                    try
-                    {
-                        await UpdateBatteryInfoAsync();
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.LogWarning(ex, "Error while updating battery info");
-                    }
-                }
+                await _notificationService.ShowNotificationAsync("Controller Connected", "Xbox controller has been connected.");
             }
-            catch (OperationCanceledException)
+            else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
             {
-                // expected on shutdown
+                await _notificationService.ShowNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.");
             }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Periodic battery update loop failed");
-            }
+        }
+
+        // Check for low battery notification
+        if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
+        {
+            await _notificationService.ShowNotificationAsync("Low Battery", "Controller battery is low and not charging.");
+        }
+
+        // Update previous state and view-model properties on the UI thread to avoid affinity violations
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            _previousBatteryLevel = batteryInfo.Level;
+            _previousIsConnected = batteryInfo.IsConnected;
+
+            ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
+            ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
+            ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
+            ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
         });
-    }
-
-    [RelayCommand]
-    private async Task UpdateBatteryInfoAsync()
-    {
-        try
-        {
-            var batteryInfo = await _batteryService.GetBatteryInfoAsync();
-
-            // Capture previous state locally to make notification decisions off the UI thread
-            var prevIsConnected = _previousIsConnected;
-            var prevBatteryLevel = _previousBatteryLevel;
-
-            // Use a local reference to settings for thread-safety of lookups
-            var settings = Settings;
-
-            // Check for controller connection/disconnection notifications (safe to call off UI thread because NotificationService posts to UI thread)
-            if (prevIsConnected != batteryInfo.IsConnected)
-            {
-                if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
-                {
-                    await _notificationService.ShowNotificationAsync("Controller Connected", "Xbox controller has been connected.");
-                }
-                else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
-                {
-                    await _notificationService.ShowNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.");
-                }
-            }
-
-            // Check for low battery notification
-            if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
-            {
-                await _notificationService.ShowNotificationAsync("Low Battery", "Controller battery is low and not charging.");
-            }
-
-            // Update previous state and view-model properties on the UI thread to avoid affinity violations
-            await Dispatcher.UIThread.InvokeAsync(() =>
-            {
-                _previousBatteryLevel = batteryInfo.Level;
-                _previousIsCharging = batteryInfo.IsCharging;
-                _previousIsConnected = batteryInfo.IsConnected;
-
-                ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
-                ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
-                ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
-                ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
-            });
-        }
-        catch (Exception ex)
-        {
-            _logger?.LogWarning(ex, "Failed to update battery info");
-        }
     }
 
     [RelayCommand]
     private void SaveSettings()
     {
-        _settingsService.SaveSettings(Settings);
+        _settingsService.SaveSettings(Settings.ToSettingsData());
     }
 
                 
@@ -179,10 +148,19 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (disposing)
             {
-                _periodicTimer?.Dispose();
-                _cts.Cancel();
                 _debounceTimer.Stop();
                 _debounceTimer.Dispose();
+                _ = Task.Run(async () =>
+                {
+                    try
+                    {
+                        _batteryService.BatteryInfoChanged -= OnBatteryInfoChanged;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogError(ex, "Failed to stop monitoring");
+                    }
+                });
             }
 
             disposedValue = true;

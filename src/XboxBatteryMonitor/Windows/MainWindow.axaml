@@ -21,7 +21,6 @@
                 <TextBlock Text="{Binding ControllerInfo.BatteryInfo.IsCharging}" FontSize="16" />
                 <TextBlock Text="Connected:" Margin="0,10,0,0" />
                 <TextBlock Text="{Binding ControllerInfo.BatteryInfo.IsConnected}" FontSize="16" />
-                <Button Content="Refresh" Command="{Binding UpdateBatteryInfoCommand}" Margin="0,20,0,0" HorizontalAlignment="Center" />
             </StackPanel>
         </TabItem>
         <TabItem Header="Settings">

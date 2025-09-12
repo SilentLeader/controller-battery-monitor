@@ -5,12 +5,13 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using XboxBatteryMonitor.ViewModels;
 using XboxBatteryMonitor.Services;
+using Microsoft.Extensions.Logging;
 
 namespace XboxBatteryMonitor.Platforms.Windows;
 
-public class BatteryMonitorWindows : IBatteryMonitorService
+public class BatteryMonitorWindows(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger) : BatteryMonitorServiceBase(settingsService, logger)
 {
-    public async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
+    public override async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
     {
         var batteryInfo = new BatteryInfoViewModel { IsConnected = false };
 
