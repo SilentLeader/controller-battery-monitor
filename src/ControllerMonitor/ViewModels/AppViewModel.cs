@@ -1,0 +1,95 @@
+using System;
+using Avalonia;
+using Avalonia.Styling;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.ComponentModel;
+using ControllerMonitor.Interfaces;
+using ControllerMonitor.Models;
+
+namespace ControllerMonitor.ViewModels;
+
+public partial class AppViewModel : ObservableObject, IDisposable
+{
+    [ObservableProperty]
+    private ControllerInfoViewModel controllerInfo = new();
+
+    [ObservableProperty]
+    private SettingsViewModel settings;
+
+    [ObservableProperty]
+    private ThemeVariant? themeVariant;
+
+    private bool disposedValue;
+    private readonly IBatteryMonitorService _batteryService;
+    private readonly ISettingsService _settingsService;
+
+    public AppViewModel(
+        IBatteryMonitorService batteryService,
+        SettingsViewModel settings,
+        ISettingsService settingsService)
+    {
+        _batteryService = batteryService;
+        this.settings = settings;
+        _settingsService = settingsService;
+        if (Application.Current != null)
+        {
+            themeVariant = Application.Current.ActualThemeVariant;
+            Application.Current.ActualThemeVariantChanged += OnThemeVariantChanged;
+        }
+
+        _batteryService.BatteryInfoChanged += OnBatteryInfoChanged;
+        _settingsService.SettingsChanged += OnSettingsChanged;
+    }
+
+    protected virtual void Dispose(bool disposing)
+    {
+        if (!disposedValue)
+        {
+            if (disposing)
+            {
+                _batteryService.BatteryInfoChanged -= OnBatteryInfoChanged;
+                _settingsService.SettingsChanged -= OnSettingsChanged;
+                if (Application.Current != null)
+                {
+                    Application.Current.ActualThemeVariantChanged -= OnThemeVariantChanged;
+                }
+            }
+
+            disposedValue = true;
+        }
+    }
+
+    public void Dispose()
+    {
+        // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    private async void OnBatteryInfoChanged(object? sender, BatteryInfoViewModel? batteryInfo)
+    {
+        if (batteryInfo == null) return;
+
+        // Update previous state and view-model properties on the UI thread to avoid affinity violations
+        await Dispatcher.UIThread.InvokeAsync(() =>
+        {
+            ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
+            ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
+            ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
+            ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
+        });
+    }
+
+    private void OnSettingsChanged(object? sender, Settings e)
+    {
+        Settings = new SettingsViewModel(_settingsService.GetSettings());
+    }
+    
+    private async void OnThemeVariantChanged(object? sender, EventArgs e)
+    {
+        if (Application.Current != null)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => ThemeVariant = Application.Current.ActualThemeVariant);
+        }
+    }
+}

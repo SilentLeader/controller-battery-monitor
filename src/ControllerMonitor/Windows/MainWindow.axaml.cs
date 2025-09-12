@@ -1,29 +1,20 @@
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Platform;
 using System;
-using System.ComponentModel;
-using ControllerMonitor.Services;
 using ControllerMonitor.Interfaces;
-using ControllerMonitor.ValueObjects;
 using ControllerMonitor.ViewModels;
-using Avalonia.Styling;
-using Avalonia.Media.Imaging;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace ControllerMonitor.Windows;
 
 public partial class MainWindow : Window
 {
-    private TrayIcon? _trayIcon;
     private MainWindowViewModel? _viewModel;
-    private NativeMenuItem? _statusMenuItem;
     private SettingsViewModel _settings;
     private bool _isShutdown = false;
 
-    public MainWindow() : this(Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>(), new SettingsViewModel(), new NotificationService())
+    public MainWindow() : this(Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>(), new SettingsViewModel(), Program.ServiceProvider!.GetRequiredService<INotificationService>())
     {
     }
 
@@ -35,8 +26,6 @@ public partial class MainWindow : Window
         PropertyChanged += MainWindow_PropertyChanged;
         Opened += MainWindow_Opened;
         Closing += MainWindow_Closing;
-
-        UpdateWindowIcon();
 
         _viewModel = viewModel;
         DataContext = _viewModel;
@@ -80,62 +69,11 @@ public partial class MainWindow : Window
             }
         }
 
-
-        // Setup tray icon
-        _trayIcon = new TrayIcon();
-        _trayIcon.ToolTipText = "Controller Monitor";
-        _trayIcon.IsVisible = true;
-        _trayIcon.Clicked += (sender, e) =>
-        {
-            Show();
-            WindowState = WindowState.Normal;
-            Activate();
-        };
-
-        // Setup tray menu
-        _statusMenuItem = new NativeMenuItem { Header = "Controller Monitor", IsEnabled = false };
-        var openItem = new NativeMenuItem { Header = "Open Main Window" };
-        openItem.Click += (sender, e) =>
-        {
-            Show();
-            WindowState = WindowState.Normal;
-            Activate();
-        };
-        var exitItem = new NativeMenuItem { Header = "Exit" };
-        exitItem.Click += (sender, e) =>
-        {
-            _trayIcon?.Dispose();
-            _isShutdown = true;
-            Close();
-            _viewModel.Dispose();
-            if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-            {
-                desktopLifetime.Shutdown();
-            }
-        };
-        var menu = new NativeMenu();
-        menu.Items.Add(_statusMenuItem);
-        menu.Items.Add(openItem);
-        menu.Items.Add(exitItem);
-        _trayIcon.Menu = menu;
-
         // Handle system shutdown to allow proper logout
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
         {
             desktopLifetime.ShutdownRequested += (sender, e) => _isShutdown = true;
         }
-
-        // Attach to battery info changes
-        _viewModel.ControllerInfo.BatteryInfo.PropertyChanged += BatteryInfo_PropertyChanged;
-
-        // Attach to theme changes
-        if (Application.Current != null)
-        {
-            Application.Current.ActualThemeVariantChanged += (s, e) => { UpdateTrayIcon(); UpdateWindowIcon(); };
-        }
-
-        // Initial update
-        UpdateTrayIcon();
 
         // Attach to window events for saving position/size
         PositionChanged += MainWindow_PositionChanged;
@@ -186,74 +124,8 @@ public partial class MainWindow : Window
         }
     }
 
-    private void BatteryInfo_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+    public void PrepareForShutdown()
     {
-        Dispatcher.UIThread.Post(() => UpdateTrayIcon());
-    }
-
-    private void UpdateTrayIcon()
-    {
-        if (_trayIcon == null || _viewModel == null) return;
-
-        var battery = _viewModel.ControllerInfo.BatteryInfo;
-        string status = battery.IsCharging ? "Charging" : "Not Charging";
-        string connection = battery.IsConnected ? "Connected" : "Disconnected";
-        _trayIcon.ToolTipText = $"Xbox Controller - Battery: {battery.Level} - {status} - {connection}";
-        if (_statusMenuItem != null)
-        {
-            _statusMenuItem.Header = _trayIcon.ToolTipText;
-        }
-
-        // Load and set icon from resources
-        var themeVariant = Application.Current?.ActualThemeVariant;
-        var theme = themeVariant == ThemeVariant.Dark ? "dark" : "light";
-        var iconName = GetIconName(battery.Level, battery.IsCharging, battery.IsConnected);
-        var uri = new Uri($"avares://ControllerMonitor/Assets/icons/{theme}/{iconName}.png");
-        using var stream = AssetLoader.Open(uri);
-        var bitmap = new Bitmap(stream);
-        _trayIcon.Icon = new WindowIcon(bitmap);
-
-        // Handle tray icon visibility based on settings
-        if (_viewModel != null && _viewModel.Settings.HideTrayIconWhenDisconnected && !battery.IsConnected)
-        {
-            _trayIcon.IsVisible = false;
-        }
-        else
-        {
-            _trayIcon.IsVisible = true;
-        }
-    }
-
-    private void UpdateWindowIcon()
-    {
-        var themeVariant = Application.Current?.ActualThemeVariant;
-        var theme = themeVariant == ThemeVariant.Dark ? "dark" : "light";
-        var uri = new Uri($"avares://ControllerMonitor/Assets/icons/{theme}/battery_normal.png");
-        using var stream = AssetLoader.Open(uri);
-        var bitmap = new Bitmap(stream);
-        Icon = new WindowIcon(bitmap);
-    }
-
-    private static string GetIconName(BatteryLevel level, bool isCharging, bool isConnected)
-    {
-        if (!isConnected)
-        {
-            return "battery_disconnected";
-        }
-
-        if (isCharging)
-        {
-            return "battery_charging";
-        }
-
-        return level switch
-        {
-            BatteryLevel.Full => "battery_full",
-            BatteryLevel.High => "battery_high",
-            BatteryLevel.Normal => "battery_normal",
-            BatteryLevel.Low => "battery_low",
-            BatteryLevel.Empty => "battery_empty",
-            _ => "battery_unknown"
-        };
+        _isShutdown = true;
     }
 }

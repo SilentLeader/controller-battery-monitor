@@ -1,8 +1,17 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:ControllerMonitor.Converters"
+             xmlns:vm="clr-namespace:ControllerMonitor.ViewModels"
              x:Class="ControllerMonitor.App"
              RequestedThemeVariant="Default">
              <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Resources>
+        <!-- Value Converters -->
+        <converters:BatteryLevelToIconConverter x:Key="BatteryLevelToIconConverter" />
+        <converters:BatteryInfoToTooltipConverter x:Key="BatteryInfoToTooltipConverter" />
+        <converters:TrayIconVisibilityConverter x:Key="TrayIconVisibilityConverter" />
+    </Application.Resources>
 
     <Application.Styles>
         <FluentTheme>
@@ -37,4 +46,47 @@
             </FluentTheme.Palettes>
         </FluentTheme>
     </Application.Styles>
+
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon x:DataType="vm:AppViewModel" Clicked="ShowMainWindow_Click">
+                <TrayIcon.ToolTipText>
+                    <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo.Level" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                    </MultiBinding>
+                </TrayIcon.ToolTipText>
+                <TrayIcon.Icon>
+                    <MultiBinding Converter="{StaticResource BatteryLevelToIconConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo.Level" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="ThemeVariant" />
+                    </MultiBinding>
+                </TrayIcon.Icon>
+                <TrayIcon.IsVisible>
+                    <MultiBinding Converter="{StaticResource TrayIconVisibilityConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="Settings.HideTrayIconWhenDisconnected" />
+                    </MultiBinding>
+                </TrayIcon.IsVisible>
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem IsEnabled="False" x:DataType="vm:AppViewModel">
+                            <NativeMenuItem.Header>
+                                <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
+                                    <Binding Path="ControllerInfo.BatteryInfo.Level" />
+                                    <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
+                                    <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                                </MultiBinding>
+                            </NativeMenuItem.Header>
+                        </NativeMenuItem>
+                        <NativeMenuItem Header="Open Main Window" Click="ShowMainWindow_Click"/>
+                        <NativeMenuItem Header="Exit" Click="ExitApplication_Click"/>
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+  </TrayIcon.Icons>
 </Application>

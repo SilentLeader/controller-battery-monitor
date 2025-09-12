@@ -43,7 +43,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     public bool IsCapacityVisible => ControllerInfo.BatteryInfo.Capacity != null;
 
-    public MainWindowViewModel(IBatteryMonitorService batteryService, SettingsViewModel settings, INotificationService notificationService, ISettingsService settingsService, ILogger<MainWindowViewModel>? logger = null)
+    public MainWindowViewModel(
+        IBatteryMonitorService batteryService,
+        SettingsViewModel settings,
+        INotificationService notificationService,
+        ISettingsService settingsService,
+        ILogger<MainWindowViewModel>? logger = null)
     {
         _batteryService = batteryService;
         _settingsService = settingsService;

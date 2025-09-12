@@ -81,6 +81,7 @@ static class Program
         services.AddTransient(s => new SettingsViewModel(s.GetRequiredService<ISettingsService>().GetSettings()));
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
+        services.AddSingleton<AppViewModel>();
 
         ServiceProvider = services.BuildServiceProvider();
     }
