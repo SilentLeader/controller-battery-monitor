@@ -1,6 +1,6 @@
 namespace ControllerMonitor.ValueObjects;
 
-public enum NotificationType
+public enum NotificationPriority
 {
     Low,
     Normal,

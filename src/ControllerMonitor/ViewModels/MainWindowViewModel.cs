@@ -114,18 +114,18 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
             {
-                await _notificationService.ShowSystemNotificationAsync("Controller Connected", "Xbox controller has been connected.");
+                await _notificationService.ShowSystemNotificationAsync("Controller Connected", "Xbox controller has been connected.", expirationTime: 3);
             }
             else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
             {
-                await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.");
+                await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.", expirationTime: 3);
             }
         }
 
         // Check for low battery notification
         if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
         {
-            await _notificationService.ShowSystemNotificationAsync("Low Battery", "Controller battery is low and not charging.", NotificationType.High);
+            await _notificationService.ShowSystemNotificationAsync("Low Battery", "Controller battery is low and not charging.", NotificationPriority.High, expirationTime: 10);
         }
 
         // Update previous state and view-model properties on the UI thread to avoid affinity violations

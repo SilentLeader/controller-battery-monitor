@@ -17,12 +17,12 @@ public abstract class NotificationServiceBase : INotificationService
         _notificationManager = new WindowNotificationManager(window);
     }
 
-    public virtual Task ShowNotificationAsync(string title, string message, ValueObjects.NotificationType type = ValueObjects.NotificationType.Normal)
+    public virtual Task ShowNotificationAsync(string title, string message, ValueObjects.NotificationPriority type = ValueObjects.NotificationPriority.Normal)
     {
         var avaloniaType = type switch
         {
-            ValueObjects.NotificationType.High => AvaloniaNotificationType.Warning,
-            ValueObjects.NotificationType.Low => AvaloniaNotificationType.Success,
+            ValueObjects.NotificationPriority.High => AvaloniaNotificationType.Warning,
+            ValueObjects.NotificationPriority.Low => AvaloniaNotificationType.Success,
             _ => AvaloniaNotificationType.Information
         };
 
@@ -30,5 +30,5 @@ public abstract class NotificationServiceBase : INotificationService
         return Task.CompletedTask;
     }
 
-    public abstract Task ShowSystemNotificationAsync(string title, string message, ValueObjects.NotificationType type = ValueObjects.NotificationType.Normal, DateTimeOffset? expirationTime = null);
+    public abstract Task ShowSystemNotificationAsync(string title, string message, ValueObjects.NotificationPriority type = ValueObjects.NotificationPriority.Normal, int? expirationTime = null);
 }
