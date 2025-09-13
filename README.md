@@ -10,6 +10,19 @@ A cross-platform Avalonia UI application for monitoring game controller battery 
 - Charging status indication
 - Simple GUI interface
 
+## Screenshots
+
+### Main Application Window - Status View
+![Main Window Status](docs/screenshots/main-window-status.png)
+
+### Main Application Window - Settings View
+![Main Window Settings](docs/screenshots/main-window-settings.png)
+
+### System Tray Integration
+![System Tray](docs/screenshots/system-tray.png)
+
+The application provides a clean, intuitive interface for monitoring your game controllers' battery levels. The main window shows real-time battery information, while the system tray integration allows for quick status checks without opening the full application.
+
 ## Installation
 
 ### Pre-built Packages
