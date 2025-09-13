@@ -34,10 +34,40 @@ cd ControllerMonitor-Linux-*
 # Copy files to appropriate locations or run directly
 ```
 
+#### Optional Dependencies
+
+For system notifications support, install `libnotify` (provides `notify-send`):
+
+**Debian/Ubuntu:**
+
+```bash
+sudo apt-get install libnotify-bin
+```
+
+**Arch Linux:**
+
+```bash
+sudo pacman -S libnotify
+```
+
+**Fedora/RHEL:**
+
+```bash
+sudo dnf install libnotify
+```
+
+**OpenSUSE:**
+
+```bash
+sudo zypper install libnotify-tools
+```
+
 After installation, you can:
+
 - Launch from your desktop environment's application menu
 - Run `controller-monitor` from the command line
 - The application will appear in your system tray (if supported)
+- Receive system notifications when libnotify is available
 
 ### From Source
 
