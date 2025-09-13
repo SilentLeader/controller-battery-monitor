@@ -40,7 +40,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ControllerMonitor-Windows-${{ needs.version.outputs.semver }}
-          path: src/ControllerMonitor/bin/Release/net9.0/win-x64/publish/
+          path: src/ControllerMonitor/bin/Release/net9.0-windows10.0.17763.0/win-x64/publish/
 
   build-linux:
     needs: version
