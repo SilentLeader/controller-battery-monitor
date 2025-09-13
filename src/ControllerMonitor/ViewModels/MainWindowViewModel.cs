@@ -3,13 +3,13 @@ using System.ComponentModel;
 using System.Reflection;
 using System.Threading.Tasks;
 using System.Timers;
+using Avalonia;
+using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
-using CommunityToolkit.Mvvm.Input;
-using Microsoft.Extensions.Logging;
-using ControllerMonitor.Services;
 using ControllerMonitor.Interfaces;
 using ControllerMonitor.ValueObjects;
+using Microsoft.Extensions.Logging;
 
 namespace ControllerMonitor.ViewModels;
 
@@ -39,6 +39,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     [ObservableProperty]
     private string appVersion;
 
+    [ObservableProperty]
+    private ThemeVariant? themeVariant;
+
     private bool disposedValue;
 
     public bool IsCapacityVisible => ControllerInfo.BatteryInfo.Capacity != null;
@@ -57,6 +60,13 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         Settings = settings;
         Settings.PropertyChanged += Settings_PropertyChanged;
         AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+
+        // Initialize theme variant
+        if (Application.Current != null)
+        {
+            themeVariant = Application.Current.ActualThemeVariant;
+            Application.Current.ActualThemeVariantChanged += OnThemeVariantChanged;
+        }
 
         _debounceTimer = new Timer(500)
         {
@@ -140,6 +150,14 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
         });
     }
+
+    private async void OnThemeVariantChanged(object? sender, EventArgs e)
+    {
+        if (Application.Current != null)
+        {
+            await Dispatcher.UIThread.InvokeAsync(() => ThemeVariant = Application.Current.ActualThemeVariant);
+        }
+    }
                 
     protected virtual void Dispose(bool disposing)
     {
@@ -149,6 +167,10 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             {
                 _debounceTimer.Stop();
                 _debounceTimer.Dispose();
+                if (Application.Current != null)
+                {
+                    Application.Current.ActualThemeVariantChanged -= OnThemeVariantChanged;
+                }
                 _ = Task.Run(() =>
                 {
                     try
