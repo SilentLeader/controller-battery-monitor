@@ -55,6 +55,7 @@
                         <Binding Path="ControllerInfo.BatteryInfo.Level" />
                         <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
                         <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="ControllerInfo.Name" />
                     </MultiBinding>
                 </TrayIcon.ToolTipText>
                 <TrayIcon.Icon>
@@ -79,6 +80,7 @@
                                     <Binding Path="ControllerInfo.BatteryInfo.Level" />
                                     <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
                                     <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                                    <Binding Path="ControllerInfo.Name" />
                                 </MultiBinding>
                             </NativeMenuItem.Header>
                         </NativeMenuItem>

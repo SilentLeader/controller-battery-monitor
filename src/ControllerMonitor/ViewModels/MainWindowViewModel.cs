@@ -89,11 +89,15 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
                     ControllerInfo.BatteryInfo.Capacity = initialInfo.Capacity;
                     ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
                     ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
+                    ControllerInfo.BatteryInfo.ModelName = initialInfo.ModelName;
+
+                    // Set initial controller name with fallback logic
+                    ControllerInfo.Name = GetControllerDisplayName(initialInfo);
                 });
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Failed to start monitoring");
+                _logger?.LogError(ex, "Failed initialize battery info");
             }
         });
     }
@@ -122,13 +126,15 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Check for controller connection/disconnection notifications (safe to call off UI thread because NotificationService posts to UI thread)
         if (prevIsConnected != batteryInfo.IsConnected)
         {
+            var controllerName = GetControllerDisplayName(batteryInfo);
+            
             if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
             {
-                await _notificationService.ShowSystemNotificationAsync("Controller Connected", "Xbox controller has been connected.", expirationTime: 3);
+                await _notificationService.ShowSystemNotificationAsync("Controller Connected", $"{controllerName} has been connected.", expirationTime: 3);
             }
             else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
             {
-                await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", "Xbox controller has been disconnected.", expirationTime: 3);
+                await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", $"{controllerName} has been disconnected.", expirationTime: 3);
             }
         }
 
@@ -148,6 +154,10 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
             ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
+            ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;
+
+            // Update controller name with fallback logic
+            ControllerInfo.Name = GetControllerDisplayName(batteryInfo);
         });
     }
 
@@ -193,5 +203,15 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
+    }
+
+    private static string GetControllerDisplayName(BatteryInfoViewModel batteryInfo)
+    {
+        if (batteryInfo?.IsConnected != true)
+            return "Unknown Controller";
+            
+        return !string.IsNullOrWhiteSpace(batteryInfo.ModelName)
+            ? batteryInfo.ModelName
+            : "Unknown Controller";
     }
 }

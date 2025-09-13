@@ -16,4 +16,7 @@ public partial class BatteryInfoViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isConnected;
+
+    [ObservableProperty]
+    private string? modelName;
 }

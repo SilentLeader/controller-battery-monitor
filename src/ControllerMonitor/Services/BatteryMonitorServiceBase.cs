@@ -96,6 +96,7 @@ public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDispo
         return previous.IsConnected != current.IsConnected ||
                previous.Level != current.Level ||
                previous.IsCharging != current.IsCharging ||
-               !Equals(previous.Capacity, current.Capacity);
+               !Equals(previous.Capacity, current.Capacity) ||
+               previous.ModelName != current.ModelName;
     }
 }

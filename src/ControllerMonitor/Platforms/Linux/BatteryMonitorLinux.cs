@@ -21,19 +21,20 @@ public class BatteryMonitorLinux(ISettingsService settingsService, ILogger<IBatt
     {
         try
         {
-            var devicePath = FindXboxBatteryDevice();
-            if (string.IsNullOrEmpty(devicePath))
+            var deviceInfo = FindXboxBatteryDevice();
+            if (deviceInfo == null)
             {
                 return new BatteryInfoViewModel { IsConnected = false };
             }
 
-            var (level, isCharging, capacity) = await ReadBatteryInfoAsync(devicePath);
+            var (level, isCharging, capacity) = await ReadBatteryInfoAsync(deviceInfo.Value.devicePath);
             return new BatteryInfoViewModel
             {
                 Level = level,
                 Capacity = capacity,
                 IsCharging = isCharging,
-                IsConnected = true
+                IsConnected = true,
+                ModelName = deviceInfo.Value.modelName
             };
         }
         catch (Exception ex)
@@ -43,7 +44,7 @@ public class BatteryMonitorLinux(ISettingsService settingsService, ILogger<IBatt
         }
     }
 
-    private static string? FindXboxBatteryDevice()
+    private static (string devicePath, string modelName)? FindXboxBatteryDevice()
     {
         if (!Directory.Exists(PowerSupplyPath))
             return null;
@@ -71,7 +72,7 @@ public class BatteryMonitorLinux(ISettingsService settingsService, ILogger<IBatt
                     var model = line.Substring(PowerSupplyModelName.Length);
                     if (model.Contains("controller", StringComparison.CurrentCultureIgnoreCase))
                     {
-                        return devicePath;
+                        return (devicePath, model);
                     }
                 }
             }
