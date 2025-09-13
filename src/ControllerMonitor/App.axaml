@@ -1,0 +1,92 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:ControllerMonitor.Converters"
+             xmlns:vm="clr-namespace:ControllerMonitor.ViewModels"
+             x:Class="ControllerMonitor.App"
+             RequestedThemeVariant="Default">
+             <!-- "Default" ThemeVariant follows system theme variant. "Dark" or "Light" are other available options. -->
+
+    <Application.Resources>
+        <!-- Value Converters -->
+        <converters:BatteryLevelToIconConverter x:Key="BatteryLevelToIconConverter" />
+        <converters:BatteryInfoToTooltipConverter x:Key="BatteryInfoToTooltipConverter" />
+        <converters:TrayIconVisibilityConverter x:Key="TrayIconVisibilityConverter" />
+    </Application.Resources>
+
+    <Application.Styles>
+        <FluentTheme>
+            <FluentTheme.Palettes>
+                <ColorPaletteResources x:Key="Dark" 
+                                     RegionColor="#FF1E1E1E"
+                                     Accent="#FF007ACC"
+                                     AltHigh="#FF2D2D30"
+                                     AltMediumHigh="#FF252526"
+                                     AltMedium="#FF3E3E42"
+                                     AltLow="#FF383838"
+                                     BaseLow="#FF464647"
+                                     BaseMediumLow="#FF3F3F46"
+                                     BaseMedium="#FF6A6A6A"
+                                     BaseMediumHigh="#FF808080"
+                                     BaseHigh="#FFCCCCCC"
+                                     ChromeAltLow="#FF969696"
+                                     ChromeMedium="#FFB3B3B3"
+                                     ChromeHigh="#FFCCCCCC"
+                                     ChromeLow="#FF464647"
+                                     ChromeMediumLow="#FF3F3F46"
+                                     ChromeGray="#FF6A6A6A"
+                                     ChromeBlackHigh="#FF1E1E1E"
+                                     ChromeBlackMedium="#FF252526"
+                                     ChromeBlackLow="#FF2D2D30"
+                                     ChromeDisabledHigh="#FF666666"
+                                     ChromeDisabledLow="#FF424242"
+                                     ChromeWhite="#FFCCCCCC"
+                                     ListLow="#FF252526"
+                                     ListMedium="#FF2D2D30"
+                                     ErrorText="#FFF44336" />
+            </FluentTheme.Palettes>
+        </FluentTheme>
+    </Application.Styles>
+
+    <TrayIcon.Icons>
+        <TrayIcons>
+            <TrayIcon x:DataType="vm:AppViewModel" Clicked="ShowMainWindow_Click">
+                <TrayIcon.ToolTipText>
+                    <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo.Level" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                    </MultiBinding>
+                </TrayIcon.ToolTipText>
+                <TrayIcon.Icon>
+                    <MultiBinding Converter="{StaticResource BatteryLevelToIconConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo.Level" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
+                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="ThemeVariant" />
+                    </MultiBinding>
+                </TrayIcon.Icon>
+                <TrayIcon.IsVisible>
+                    <MultiBinding Converter="{StaticResource TrayIconVisibilityConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="Settings.HideTrayIconWhenDisconnected" />
+                    </MultiBinding>
+                </TrayIcon.IsVisible>
+                <TrayIcon.Menu>
+                    <NativeMenu>
+                        <NativeMenuItem IsEnabled="False" x:DataType="vm:AppViewModel">
+                            <NativeMenuItem.Header>
+                                <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
+                                    <Binding Path="ControllerInfo.BatteryInfo.Level" />
+                                    <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
+                                    <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                                </MultiBinding>
+                            </NativeMenuItem.Header>
+                        </NativeMenuItem>
+                        <NativeMenuItem Header="Open Main Window" Click="ShowMainWindow_Click"/>
+                        <NativeMenuItem Header="Exit" Click="ExitApplication_Click"/>
+                    </NativeMenu>
+                </TrayIcon.Menu>
+            </TrayIcon>
+        </TrayIcons>
+  </TrayIcon.Icons>
+</Application>

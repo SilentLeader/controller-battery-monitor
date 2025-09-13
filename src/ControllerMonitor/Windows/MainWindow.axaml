@@ -1,0 +1,56 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ControllerMonitor.ViewModels"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
+        x:Class="ControllerMonitor.Windows.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="Controller Monitor"
+        MinWidth="640"
+        MinHeight="390"
+        >
+    <TabControl Margin="20">
+        <TabItem Header="Battery Info">
+            <StackPanel>
+                <TextBlock Text="{Binding ControllerInfo.Name}" FontSize="18" FontWeight="Bold" />
+                <TextBlock Text="Battery Level:" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Level}" FontSize="16" />
+                <StackPanel IsVisible="{Binding IsCapacityVisible}">
+                    <TextBlock Text="Capacity:" Margin="0,10,0,0" />
+                    <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Capacity}" FontSize="16" />
+                </StackPanel>
+                <TextBlock Text="Charging:" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.IsCharging}" FontSize="16" />
+                <TextBlock Text="Connected:" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.IsConnected}" FontSize="16" />
+            </StackPanel>
+        </TabItem>
+        <TabItem Header="Settings">
+            <StackPanel>
+                <CheckBox Content="Start minimized on startup" IsChecked="{Binding Settings.StartMinimized}" Margin="0,10,0,0" />
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Text="Update frequency (seconds):" VerticalAlignment="Center" />
+                    <NumericUpDown Value="{Binding Settings.UpdateFrequencySeconds}" Minimum="1" Maximum="60" Width="100" Margin="10,0,0,0" />
+                </StackPanel>
+                <CheckBox Content="Hide tray icon when controller disconnected" IsChecked="{Binding Settings.HideTrayIconWhenDisconnected}" Margin="0,10,0,0" />
+                <Border BorderThickness="1" CornerRadius="3" BorderBrush="{DynamicResource SystemControlForegroundBaseHighBrush}" Padding="10">
+                    <StackPanel>
+                        <TextBlock>Notifications</TextBlock>
+                        <CheckBox Content="Show notification when controller connected" IsChecked="{Binding Settings.NotifyOnControllerConnected}" Margin="0,10,0,0" />
+                        <CheckBox Content="Show notification when controller disconnected" IsChecked="{Binding Settings.NotifyOnControllerDisconnected}" Margin="0,10,0,0" />
+                        <CheckBox Content="Show notification when battery is low" IsChecked="{Binding Settings.NotifyOnBatteryLow}" Margin="0,10,0,0" />
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </TabItem>
+        <TabItem Header="About">
+            <StackPanel>
+                <TextBlock Text="{Binding AppName}" FontSize="18" FontWeight="Bold" />
+                <TextBlock Text="{Binding AppDescription}" Margin="0,10,0,0" />
+                <TextBlock Text="Version:" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding AppVersion}" FontSize="16" />
+            </StackPanel>
+        </TabItem>
+    </TabControl>
+</Window>
