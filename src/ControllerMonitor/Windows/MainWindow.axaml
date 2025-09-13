@@ -3,6 +3,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ControllerMonitor.ViewModels"
+        xmlns:vo="clr-namespace:ControllerMonitor.ValueObjects"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
         x:Class="ControllerMonitor.Windows.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -10,6 +11,14 @@
         MinWidth="640"
         MinHeight="390"
         >
+    <Window.Icon>
+        <MultiBinding Converter="{StaticResource BatteryLevelToIconConverter}">
+            <Binding Path="ControllerInfo.BatteryInfo.Level" />
+            <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
+            <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+            <Binding Path="ThemeVariant" />
+        </MultiBinding>
+    </Window.Icon>
     <TabControl Margin="20">
         <TabItem Header="Battery Info">
             <StackPanel>

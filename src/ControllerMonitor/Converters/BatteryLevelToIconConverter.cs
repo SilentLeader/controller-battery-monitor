@@ -6,6 +6,7 @@ using Avalonia.Platform;
 using Avalonia.Styling;
 using ControllerMonitor.ValueObjects;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Globalization;
 
@@ -13,6 +14,7 @@ namespace ControllerMonitor.Converters
 {
     public class BatteryLevelToIconConverter : IMultiValueConverter
     {
+        private static readonly ConcurrentDictionary<Uri, WindowIcon> _iconCache = new();
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
             if (values.Count < 3) return null;
@@ -26,20 +28,41 @@ namespace ControllerMonitor.Converters
             var theme = themeVariant == ThemeVariant.Dark ? "dark" : "light";
             var uri = new Uri($"avares://ControllerMonitor/Assets/icons/{theme}/{iconName}.png");
             
-            try
+            return GetOrCreateWindowIcon(uri, theme);
+        }
+
+        private static WindowIcon GetOrCreateWindowIcon(Uri uri, string theme)
+        {
+            return _iconCache.GetOrAdd(uri, (iconUri) =>
             {
-                using var stream = AssetLoader.Open(uri);
-                var bitmap = new Bitmap(stream);
-                return new WindowIcon(bitmap);
-            }
-            catch
-            {
-                // Fallback to a default icon if loading fails
-                var fallbackUri = new Uri($"avares://ControllerMonitor/Assets/icons/{theme}/battery_unknown.png");
-                using var fallbackStream = AssetLoader.Open(fallbackUri);
-                var fallbackBitmap = new Bitmap(fallbackStream);
-                return new WindowIcon(fallbackBitmap);
-            }
+                try
+                {
+                    using var stream = AssetLoader.Open(iconUri);
+                    var bitmap = new Bitmap(stream);
+                    return new WindowIcon(bitmap);
+                }
+                catch
+                {
+                    // Fallback to a default icon if loading fails
+                    var fallbackUri = new Uri($"avares://ControllerMonitor/Assets/icons/{theme}/battery_unknown.png");
+                    
+                    // Try to get fallback from cache first, or create it
+                    return _iconCache.GetOrAdd(fallbackUri, (fallbackIconUri) =>
+                    {
+                        try
+                        {
+                            using var fallbackStream = AssetLoader.Open(fallbackIconUri);
+                            var fallbackBitmap = new Bitmap(fallbackStream);
+                            return new WindowIcon(fallbackBitmap);
+                        }
+                        catch
+                        {
+                            // If even fallback fails, return null
+                            return null!;
+                        }
+                    });
+                }
+            });
         }
 
         private static string GetIconName(BatteryLevel level, bool isCharging, bool isConnected)
