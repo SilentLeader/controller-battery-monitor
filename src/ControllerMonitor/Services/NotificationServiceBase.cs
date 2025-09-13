@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
@@ -16,13 +17,12 @@ public abstract class NotificationServiceBase : INotificationService
         _notificationManager = new WindowNotificationManager(window);
     }
 
-    public virtual Task ShowNotificationAsync(string title, string message, Interfaces.NotificationType type = Interfaces.NotificationType.Information)
+    public virtual Task ShowNotificationAsync(string title, string message, ValueObjects.NotificationType type = ValueObjects.NotificationType.Normal)
     {
         var avaloniaType = type switch
         {
-            Interfaces.NotificationType.Warning => AvaloniaNotificationType.Warning,
-            Interfaces.NotificationType.Error => AvaloniaNotificationType.Error,
-            Interfaces.NotificationType.Success => AvaloniaNotificationType.Success,
+            ValueObjects.NotificationType.High => AvaloniaNotificationType.Warning,
+            ValueObjects.NotificationType.Low => AvaloniaNotificationType.Success,
             _ => AvaloniaNotificationType.Information
         };
 
@@ -30,5 +30,5 @@ public abstract class NotificationServiceBase : INotificationService
         return Task.CompletedTask;
     }
 
-    public abstract Task ShowSystemNotificationAsync(string title, string message, Interfaces.NotificationType type = Interfaces.NotificationType.Information);
+    public abstract Task ShowSystemNotificationAsync(string title, string message, ValueObjects.NotificationType type = ValueObjects.NotificationType.Normal, DateTimeOffset? expirationTime = null);
 }

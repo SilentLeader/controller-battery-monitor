@@ -125,7 +125,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Check for low battery notification
         if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
         {
-            await _notificationService.ShowSystemNotificationAsync("Low Battery", "Controller battery is low and not charging.", NotificationType.Warning);
+            await _notificationService.ShowSystemNotificationAsync("Low Battery", "Controller battery is low and not charging.", NotificationType.High);
         }
 
         // Update previous state and view-model properties on the UI thread to avoid affinity violations

@@ -1,55 +1,33 @@
 #if WINDOWS
+using ControllerMonitor.Interfaces;
+using ControllerMonitor.Services;
+using ControllerMonitor.ValueObjects;
+using Microsoft.Extensions.Logging;
+using Microsoft.Toolkit.Uwp.Notifications;
 using System;
 using System.Threading.Tasks;
-using ControllerMonitor.Services;
-using Windows.Data.Xml.Dom;
 using Windows.UI.Notifications;
 
 namespace ControllerMonitor.Platforms.Windows;
 
-public class NotificationServiceWindows : NotificationServiceBase
+public class NotificationServiceWindows(ILogger<INotificationService> logger) : NotificationServiceBase
 {
-    private const string APP_ID = "ControllerMonitor";
-
-    public override async Task ShowSystemNotificationAsync(string title, string message, Interfaces.NotificationType type = Interfaces.NotificationType.Information)
+    public override async Task ShowSystemNotificationAsync(string title, string message, NotificationType type = NotificationType.Normal, DateTimeOffset? expirationTime = null)
     {
         try
         {
-            // Create toast notification using Windows Runtime API
-            var toastXml = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastText02);
-            
-            var stringElements = toastXml.GetElementsByTagName("text");
-            stringElements[0].AppendChild(toastXml.CreateTextNode(title));
-            stringElements[1].AppendChild(toastXml.CreateTextNode(message));
-
-            // Configure audio based on notification type
-            var audioElement = toastXml.CreateElement("audio");
-            var audioSrc = type switch
-            {
-                Interfaces.NotificationType.Error => "ms-winsoundevent:Notification.Looping.Alarm",
-                Interfaces.NotificationType.Warning => "ms-winsoundevent:Notification.Default",
-                Interfaces.NotificationType.Success => "ms-winsoundevent:Notification.SMS",
-                Interfaces.NotificationType.Information => "ms-winsoundevent:Notification.Default",
-                _ => "ms-winsoundevent:Notification.Default"
-            };
-            
-            audioElement.SetAttribute("src", audioSrc);
-            toastXml.DocumentElement?.AppendChild(audioElement);
-
-            var toast = new ToastNotification(toastXml);
-            
-            // Set priority for critical notifications
-            if (type == Interfaces.NotificationType.Error)
-            {
-                toast.Priority = ToastNotificationPriority.High;
-            }
-            
-            ToastNotificationManager.CreateToastNotifier(APP_ID).Show(toast);
-            
-            await Task.CompletedTask;
+            new ToastContentBuilder()
+                .AddText(title)
+                .AddText(message)
+                .Show(toast => 
+                {
+                    toast.ExpirationTime = expirationTime ?? DateTime.Now.AddSeconds(15);
+                    toast.Priority = type == NotificationType.High ? ToastNotificationPriority.High : ToastNotificationPriority.Default;
+                });
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            logger.LogWarning(ex, "System notification failed");
             // Fallback to in-app notification if toast fails
             await ShowNotificationAsync(title, message, type);
         }
