@@ -12,7 +12,7 @@ namespace ControllerMonitor.Platforms.Windows;
 
 public class NotificationServiceWindows(ILogger<INotificationService> logger) : NotificationServiceBase
 {
-    public override async Task ShowSystemNotificationAsync(string title, string message, NotificationPriority type = NotificationType.Normal, int? expirationTime = null)
+    public override async Task ShowSystemNotificationAsync(string title, string message, NotificationPriority type = NotificationPriority.Normal, int? expirationTime = null)
     {
         try
         {
@@ -22,7 +22,7 @@ public class NotificationServiceWindows(ILogger<INotificationService> logger) : 
                 .Show(toast => 
                 {
                     toast.ExpirationTime = DateTime.Now.AddSeconds(expirationTime ?? 10);
-                    toast.Priority = type == NotificationType.High ? ToastNotificationPriority.High : ToastNotificationPriority.Default;
+                    toast.Priority = type == NotificationPriority.High ? ToastNotificationPriority.High : ToastNotificationPriority.Default;
                 });
         }
         catch (Exception ex)
