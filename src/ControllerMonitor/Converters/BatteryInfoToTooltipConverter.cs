@@ -15,6 +15,15 @@ namespace ControllerMonitor.Converters
             var level = values[0] as BatteryLevel? ?? BatteryLevel.Unknown;
             var status = values[1] as ConnectionStatus? ?? ConnectionStatus.Disconnected;
             var modelName = values.Count > 2 ? values[2] as string : null;
+            
+            // Check if we have hideTrayIconWhenDisconnected setting as 4th parameter
+            var hideTrayIconWhenDisconnected = values.Count > 3 ? values[3] as bool? ?? false : false;
+            
+            // If controller is disconnected and we should hide tray icon, return default tooltip
+            if (status == ConnectionStatus.Disconnected && hideTrayIconWhenDisconnected)
+            {
+                return "Controller Monitor";
+            }
     
             string statusText = status switch
             {
