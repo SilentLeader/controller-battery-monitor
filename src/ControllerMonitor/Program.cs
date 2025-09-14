@@ -11,6 +11,9 @@ using ControllerMonitor.Windows;
 using System.Runtime.InteropServices;
 using ControllerMonitor.Platforms.Windows;
 using ControllerMonitor.Platforms.Linux;
+#if LINUX
+using ControllerMonitor.UPower.Extensions;
+#endif
 
 namespace ControllerMonitor;
 
@@ -30,24 +33,30 @@ static class Program
 
         // Set up dependency injection
         ConfigureServices();
-
-        using (var singleInstanceService = ServiceProvider!.GetRequiredService<SingleInstanceService>())
+        try
         {
-            if (!singleInstanceService.TryAcquireSingleInstance())
+            using (var singleInstanceService = ServiceProvider!.GetRequiredService<SingleInstanceService>())
             {
-                // Another instance is running, bring it to front
-                singleInstanceService.BringExistingWindowToFront();
-                return;
+                if (!singleInstanceService.TryAcquireSingleInstance())
+                {
+                    // Another instance is running, bring it to front
+                    singleInstanceService.BringExistingWindowToFront();
+                    return;
+                }
+
+                var settingsService = ServiceProvider!.GetRequiredService<ISettingsService>();
+                settingsService.LoadSettings();
+                var batteryMonitorService = ServiceProvider!.GetRequiredService<IBatteryMonitorService>();
+                batteryMonitorService.StartMonitoring();
+
+                // This is the first instance, proceed with the application
+                BuildAvaloniaApp()
+                    .StartWithClassicDesktopLifetime(args);
             }
-
-            var settingsService = ServiceProvider!.GetRequiredService<ISettingsService>();            
-            settingsService.LoadSettings();
-            var batteryMonitorService = ServiceProvider!.GetRequiredService<IBatteryMonitorService>();
-            batteryMonitorService.StartMonitoring();
-
-            // This is the first instance, proceed with the application
-            BuildAvaloniaApp()
-                .StartWithClassicDesktopLifetime(args);
+        }
+        catch (Exception ex)
+        {
+            Log.Logger.Fatal(ex, "Fatael error");
         }
     }
 
@@ -76,6 +85,7 @@ static class Program
             services.AddSingleton<ISettingsService, SettingsServiceLinux>();
 #if LINUX
             services.AddSingleton<INotificationService, NotificationServiceLinux>();
+            services.AddUPower();
 #endif
         }
 

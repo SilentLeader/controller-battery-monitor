@@ -10,16 +10,23 @@ namespace ControllerMonitor.Converters
     {
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
-            if (values.Count < 3) return "Controller Monitor";
-
+            if (values.Count < 2) return "Controller Monitor";
+    
             var level = values[0] as BatteryLevel? ?? BatteryLevel.Unknown;
-            var isCharging = values[1] as bool? ?? false;
-            var isConnected = values[2] as bool? ?? false;
-
-            string status = isCharging ? "Charging" : "Not Charging";
-            string connection = isConnected ? "Connected" : "Disconnected";
-
-            return $"Xbox Controller - Battery: {level} - {status} - {connection}";
+            var status = values[1] as ConnectionStatus? ?? ConnectionStatus.Disconnected;
+            var modelName = values.Count > 2 ? values[2] as string : null;
+    
+            string statusText = status switch
+            {
+                ConnectionStatus.Disconnected => "Disconnected",
+                ConnectionStatus.Connected => "Connected",
+                ConnectionStatus.Charging => "Charging",
+                _ => "Unknown"
+            };
+            
+            string controllerName = !string.IsNullOrWhiteSpace(modelName) ? modelName : "Unknown Controller";
+    
+            return $"{controllerName} - Battery: {level} - Status: {statusText}";
         }
     }
 }

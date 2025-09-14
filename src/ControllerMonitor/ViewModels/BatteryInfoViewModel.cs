@@ -16,4 +16,22 @@ public partial class BatteryInfoViewModel : ObservableObject
 
     [ObservableProperty]
     private bool isConnected;
+
+    [ObservableProperty]
+    private string? modelName;
+
+    public ConnectionStatus Status =>
+        !IsConnected ? ConnectionStatus.Disconnected :
+        IsCharging ? ConnectionStatus.Charging :
+        ConnectionStatus.Connected;
+
+    partial void OnIsChargingChanged(bool value)
+    {
+        OnPropertyChanged(nameof(Status));
+    }
+
+    partial void OnIsConnectedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(Status));
+    }
 }

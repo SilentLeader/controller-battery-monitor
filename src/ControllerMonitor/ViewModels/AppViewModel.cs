@@ -1,10 +1,12 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ControllerMonitor.Interfaces;
 using ControllerMonitor.Models;
+using Microsoft.Extensions.Logging;
 
 namespace ControllerMonitor.ViewModels;
 
@@ -26,7 +28,8 @@ public partial class AppViewModel : ObservableObject, IDisposable
     public AppViewModel(
         IBatteryMonitorService batteryService,
         SettingsViewModel settings,
-        ISettingsService settingsService)
+        ISettingsService settingsService,
+        ILogger<AppViewModel> logger)
     {
         _batteryService = batteryService;
         this.settings = settings;
@@ -39,6 +42,29 @@ public partial class AppViewModel : ObservableObject, IDisposable
 
         _batteryService.BatteryInfoChanged += OnBatteryInfoChanged;
         _settingsService.SettingsChanged += OnSettingsChanged;
+
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var initialInfo = await _batteryService.GetBatteryInfoAsync();
+                await Dispatcher.UIThread.InvokeAsync(() =>
+                {
+                    ControllerInfo.BatteryInfo.Level = initialInfo.Level;
+                    ControllerInfo.BatteryInfo.Capacity = initialInfo.Capacity;
+                    ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
+                    ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
+                    ControllerInfo.BatteryInfo.ModelName = initialInfo.ModelName;
+
+                    // Set initial controller name with fallback logic
+                    ControllerInfo.Name = GetControllerDisplayName(initialInfo);
+                });
+            }
+            catch (Exception ex)
+            {
+                logger?.LogError(ex, "Failed initialize battery info");
+            }
+        });
     }
 
     protected virtual void Dispose(bool disposing)
@@ -77,6 +103,10 @@ public partial class AppViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
             ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
+            ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;
+
+            // Set initial controller name with fallback logic
+            ControllerInfo.Name = GetControllerDisplayName(batteryInfo);
         });
     }
 
@@ -84,12 +114,22 @@ public partial class AppViewModel : ObservableObject, IDisposable
     {
         Settings = new SettingsViewModel(_settingsService.GetSettings());
     }
-    
+
     private async void OnThemeVariantChanged(object? sender, EventArgs e)
     {
         if (Application.Current != null)
         {
             await Dispatcher.UIThread.InvokeAsync(() => ThemeVariant = Application.Current.ActualThemeVariant);
         }
+    }
+    
+    private static string GetControllerDisplayName(BatteryInfoViewModel batteryInfo)
+    {
+        if (batteryInfo?.IsConnected != true)
+            return "Unknown Controller";
+            
+        return !string.IsNullOrWhiteSpace(batteryInfo.ModelName)
+            ? batteryInfo.ModelName
+            : "Unknown Controller";
     }
 }
