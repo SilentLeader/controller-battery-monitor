@@ -60,7 +60,7 @@ static class Program
         }
         catch (Exception ex)
         {
-            Log.Logger.Fatal(ex, "Fatael error");
+            Log.Logger.Fatal(ex, "Fatal error");
         }
     }
 
