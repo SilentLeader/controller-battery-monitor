@@ -2,8 +2,6 @@ using ControllerMonitor.UPower.Exceptions;
 using ControllerMonitor.UPower.Models;
 using ControllerMonitor.UPower.Native;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using System.Collections.Concurrent;
 using System.Runtime.InteropServices;
 
 namespace ControllerMonitor.UPower.Services;
@@ -14,44 +12,18 @@ namespace ControllerMonitor.UPower.Services;
 public sealed class UPowerClient : IDisposable
 {
     private readonly ILogger<UPowerClient> _logger;
-    private readonly UPowerConfiguration _configuration;
     private readonly UPowerPropertyConverter _propertyConverter;
     private readonly SemaphoreSlim _clientSemaphore = new(1, 1);
-    private readonly ConcurrentDictionary<string, BatteryDevice> _deviceCache = new();
-    private readonly Timer _cacheCleanupTimer;
-    
     private SafeUPowerClientHandle? _clientHandle;
     private bool _disposed;
-    private DateTimeOffset _lastCacheCleanup = DateTimeOffset.UtcNow;
-    
-    /// <summary>
-    /// Event fired when a device is added
-    /// </summary>
-    public event EventHandler<BatteryDeviceEventArgs>? DeviceAdded;
-    
-    /// <summary>
-    /// Event fired when a device is removed
-    /// </summary>
-    public event EventHandler<BatteryDeviceEventArgs>? DeviceRemoved;
-    
-    /// <summary>
-    /// Event fired when a device's properties change
-    /// </summary>
-    public event EventHandler<BatteryDeviceEventArgs>? DeviceChanged;
+    private readonly TimeSpan _operationTimeout = TimeSpan.FromSeconds(3);
     
     public UPowerClient(
         ILogger<UPowerClient> logger,
-        IOptions<UPowerConfiguration> configuration,
         UPowerPropertyConverter propertyConverter)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _configuration = configuration?.Value ?? throw new ArgumentNullException(nameof(configuration));
         _propertyConverter = propertyConverter ?? throw new ArgumentNullException(nameof(propertyConverter));
-        
-        // Setup cache cleanup timer
-        _cacheCleanupTimer = new Timer(CleanupCache, null, 
-            _configuration.Advanced.GCCollectionInterval,
-            _configuration.Advanced.GCCollectionInterval);
     }
     
     /// <summary>
@@ -117,7 +89,7 @@ public sealed class UPowerClient : IDisposable
         
         try
         {
-            using var timeout = new CancellationTokenSource(_configuration.OperationTimeout);
+            using var timeout = new CancellationTokenSource(_operationTimeout);
             using var combined = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
             
             return await GetDevicesInternalAsync(combined.Token);
@@ -128,7 +100,7 @@ public sealed class UPowerClient : IDisposable
         }
         catch (OperationCanceledException)
         {
-            throw new UPowerTimeoutException("GetDevicesAsync", _configuration.OperationTimeout);
+            throw new UPowerTimeoutException("GetDevicesAsync", _operationTimeout);
         }
         catch (Exception ex)
         {
@@ -148,56 +120,11 @@ public sealed class UPowerClient : IDisposable
         if (_disposed)
             throw new ObjectDisposedException(nameof(UPowerClient));
         
-        // Check cache first
-        if (_configuration.Advanced.EnablePropertyCaching &&
-            _deviceCache.TryGetValue(objectPath, out var cachedDevice) &&
-            DateTimeOffset.UtcNow - cachedDevice.UpdateTime < _configuration.Advanced.PropertyCacheExpiry)
-        {
-            _logger.LogDebug("Returning cached device for {ObjectPath}", objectPath);
-            return cachedDevice;
-        }
-        
         var devices = await GetDevicesAsync(cancellationToken);
         return devices.FirstOrDefault(d => d.ObjectPath == objectPath);
     }
     
-    /// <summary>
-    /// Refreshes a specific device's properties
-    /// </summary>
-    public async Task<BatteryDevice?> RefreshDeviceAsync(string objectPath, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(objectPath))
-            throw new ArgumentException("Object path cannot be null or empty", nameof(objectPath));
-            
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(UPowerClient));
-            
-        if (!await EnsureInitializedAsync(cancellationToken))
-        {
-            return null;
-        }
-        
-        try
-        {
-            using var timeout = new CancellationTokenSource(_configuration.OperationTimeout);
-            using var combined = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-            
-            return await RefreshDeviceInternalAsync(objectPath, combined.Token);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw new UPowerOperationCancelledException("RefreshDeviceAsync", cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            throw new UPowerTimeoutException("RefreshDeviceAsync", _configuration.OperationTimeout);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to refresh device {ObjectPath}", objectPath);
-            throw UPowerExceptionHelpers.WrapException(ex, "RefreshDeviceAsync");
-        }
-    }
+    
     
     /// <summary>
     /// Checks whether the system is running on battery power
@@ -214,7 +141,7 @@ public sealed class UPowerClient : IDisposable
         
         try
         {
-            using var timeout = new CancellationTokenSource(_configuration.OperationTimeout);
+            using var timeout = new CancellationTokenSource(_operationTimeout);
             using var combined = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
             
             return await Task.Run(() =>
@@ -230,7 +157,7 @@ public sealed class UPowerClient : IDisposable
         }
         catch (OperationCanceledException)
         {
-            throw new UPowerTimeoutException("IsOnBatteryAsync", _configuration.OperationTimeout);
+            throw new UPowerTimeoutException("IsOnBatteryAsync", _operationTimeout);
         }
         catch (Exception ex)
         {
@@ -254,7 +181,7 @@ public sealed class UPowerClient : IDisposable
         
         try
         {
-            using var timeout = new CancellationTokenSource(_configuration.OperationTimeout);
+            using var timeout = new CancellationTokenSource(_operationTimeout);
             using var combined = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
             
             await Task.Run(() =>
@@ -272,7 +199,7 @@ public sealed class UPowerClient : IDisposable
         }
         catch (OperationCanceledException)
         {
-            throw new UPowerTimeoutException("SetLidIsClosedAsync", _configuration.OperationTimeout);
+            throw new UPowerTimeoutException("SetLidIsClosedAsync", _operationTimeout);
         }
         catch (Exception ex)
         {
@@ -305,7 +232,7 @@ public sealed class UPowerClient : IDisposable
                 _logger.LogDebug("Processing {DeviceCount} UPower devices", deviceCount);
                 
                 // Use semaphore to limit concurrent device processing
-                using var concurrencySemaphore = new SemaphoreSlim(_configuration.Advanced.MaxConcurrentDeviceQueries);
+                using var concurrencySemaphore = new SemaphoreSlim(1);
                 var tasks = new Task<BatteryDevice?>[deviceCount];
                 
                 for (uint i = 0; i < deviceCount; i++)
@@ -318,15 +245,9 @@ public sealed class UPowerClient : IDisposable
                 
                 foreach (var device in results)
                 {
-                    if (device != null && _configuration.DeviceFilter.ShouldIncludeDevice(device))
+                    if (device != null)
                     {
                         devices.Add(device);
-                        
-                        // Update cache
-                        if (_configuration.Advanced.EnablePropertyCaching)
-                        {
-                            _deviceCache.AddOrUpdate(device.ObjectPath, device, (_, _) => device);
-                        }
                     }
                 }
                 
@@ -362,13 +283,10 @@ public sealed class UPowerClient : IDisposable
             var device = _propertyConverter.ExtractBatteryDevice(deviceHandle, objectPath);
             
             // Validate and sanitize if enabled
-            if (_configuration.Advanced.EnableDataValidation)
+            if (!_propertyConverter.ValidateDeviceProperties(device))
             {
-                if (!_propertyConverter.ValidateDeviceProperties(device))
-                {
-                    _logger.LogWarning("Device validation failed for {ObjectPath}, sanitizing data", objectPath);
-                    device = _propertyConverter.SanitizeDeviceProperties(device);
-                }
+                _logger.LogWarning("Device validation failed for {ObjectPath}, sanitizing data", objectPath);
+                device = _propertyConverter.SanitizeDeviceProperties(device);
             }
             
             return device;
@@ -382,26 +300,6 @@ public sealed class UPowerClient : IDisposable
         {
             semaphore.Release();
         }
-    }
-    
-    /// <summary>
-    /// Refreshes a specific device internally
-    /// </summary>
-    private async Task<BatteryDevice?> RefreshDeviceInternalAsync(string objectPath, CancellationToken cancellationToken)
-    {
-        var devices = await GetDevicesInternalAsync(cancellationToken);
-        var device = devices.FirstOrDefault(d => d.ObjectPath == objectPath);
-        
-        if (device != null)
-        {
-            // Invalidate cache entry
-            _deviceCache.TryRemove(objectPath, out _);
-            
-            // Fire changed event
-            DeviceChanged?.Invoke(this, new BatteryDeviceEventArgs(device));
-        }
-        
-        return device;
     }
     
     /// <summary>
@@ -422,9 +320,7 @@ public sealed class UPowerClient : IDisposable
     {
         return await Task.Run(() =>
         {
-            var libraryPaths = _configuration.Library.CustomLibraryPaths
-                .Concat(new[] { "libupower-glib.so.3", "libupower-glib.so.1", "libupower-glib.so" })
-                .ToArray();
+            var libraryPaths = new[] { "libupower-glib.so.3", "libupower-glib.so.1", "libupower-glib.so" };
             
             foreach (var path in libraryPaths)
             {
@@ -433,22 +329,9 @@ public sealed class UPowerClient : IDisposable
                     var handle = NativeLibrary.Load(path);
                     if (handle != IntPtr.Zero)
                     {
-                        if (_configuration.Library.VerifyLibraryAfterLoad)
-                        {
-                            // Test basic functionality
-                            var testClient = UPowerNative.up_client_new();
-                            if (testClient != IntPtr.Zero)
-                            {
-                                UPowerNative.g_object_unref(testClient);
-                                _logger.LogDebug("Successfully loaded and verified UPower library: {Path}", path);
-                                return true;
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogDebug("Successfully loaded UPower library: {Path}", path);
-                            return true;
-                        }
+                        _logger.LogDebug("Successfully loaded UPower library: {Path}", path);
+                        return true;
+                        
                     }
                 }
                 catch (Exception ex)
@@ -474,42 +357,6 @@ public sealed class UPowerClient : IDisposable
     }
     
     /// <summary>
-    /// Cleans up the device cache periodically
-    /// </summary>
-    private void CleanupCache(object? state)
-    {
-        try
-        {
-            var now = DateTimeOffset.UtcNow;
-            var expiredKeys = _deviceCache
-                .Where(kvp => now - kvp.Value.UpdateTime > _configuration.Advanced.PropertyCacheExpiry)
-                .Select(kvp => kvp.Key)
-                .ToList();
-            
-            foreach (var key in expiredKeys)
-            {
-                _deviceCache.TryRemove(key, out _);
-            }
-            
-            if (expiredKeys.Count > 0)
-            {
-                _logger.LogDebug("Cleaned up {Count} expired cache entries", expiredKeys.Count);
-            }
-            
-            // Force GC if requested
-            if (now - _lastCacheCleanup > _configuration.Advanced.GCCollectionInterval)
-            {
-                GC.Collect(0, GCCollectionMode.Optimized);
-                _lastCacheCleanup = now;
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error during cache cleanup");
-        }
-    }
-    
-    /// <summary>
     /// Gets the internal client handle for event monitoring
     /// </summary>
     internal SafeUPowerClientHandle? GetClientHandle()
@@ -521,25 +368,10 @@ public sealed class UPowerClient : IDisposable
     {
         if (_disposed)
             return;
-            
-        _cacheCleanupTimer?.Dispose();
+        
         _clientSemaphore?.Dispose();
         _clientHandle?.Dispose();
-        _deviceCache.Clear();
         
         _disposed = true;
-    }
-}
-
-/// <summary>
-/// Event arguments for battery device events
-/// </summary>
-public sealed class BatteryDeviceEventArgs : EventArgs
-{
-    public BatteryDevice Device { get; }
-    
-    public BatteryDeviceEventArgs(BatteryDevice device)
-    {
-        Device = device ?? throw new ArgumentNullException(nameof(device));
     }
 }

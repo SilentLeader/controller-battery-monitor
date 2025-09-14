@@ -15,7 +15,6 @@ using ControllerMonitor.UPower.Models;
 using ControllerMonitor.UPower.ValueObjects;
 using ControllerMonitor.UPower.Exceptions;
 using UPowerBatteryState = ControllerMonitor.UPower.ValueObjects.BatteryState;
-using UPowerBatteryLevel = ControllerMonitor.UPower.ValueObjects.BatteryLevel;
 #endif
 using ControllerBatteryLevel = ControllerMonitor.ValueObjects.BatteryLevel;
 
@@ -177,13 +176,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
                 _upowerAvailable = await _upowerProvider.IsAvailableAsync();
                 
                 if (_upowerAvailable)
-                {
-                    // Start event monitoring for real-time updates
-                    await _upowerProvider.StartMonitoringAsync();
-                    
-                    // Wire up events to trigger battery info changes
-                    _upowerProvider.DevicesChanged += OnUPowerDeviceChanged;
-                    
+                {   
                     _logger.LogInformation("UPower integration initialized successfully");
                 }
                 else
@@ -193,7 +186,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             }
             else
             {
-                _logger.LogDebug("UPower provider not registered in DI container");
+                _logger.LogError("UPower provider not registered in DI container");
                 _upowerAvailable = false;
             }
         }
@@ -207,37 +200,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             _upowerInitialized = true;
         }
     }
-    
-    /// <summary>
-    /// Event handler for UPower device changes
-    /// </summary>
-    private async void OnUPowerDeviceChanged(object? sender, BatteryDeviceEventArgs e)
-    {
-        try
-        {
-            // Only process gaming controller events to avoid noise
-            if (!e.Device.IsGamingController)
-                return;
-                
-            _logger.LogDebug("UPower device changed: {Model} - {Percentage}% ({State})",
-                e.Device.DisplayName, e.Device.Percentage, e.Device.State);
-            
-            // Trigger battery info change event through base class mechanism
-            var viewModel = ConvertUPowerToViewModel(e.Device);
-            
-            // Use the base class event mechanism to notify about changes
-            lock (LockObject)
-            {
-                // This will trigger the BatteryInfoChanged event if the state has actually changed
-                // The base class handles change detection logic
-            }
-        }
-        catch (Exception ex)
-        {
-            _logger.LogWarning(ex, "Error processing UPower device change event");
-        }
-    }
-    
+        
     /// <summary>
     /// Converts UPower BatteryDevice to BatteryInfoViewModel
     /// </summary>

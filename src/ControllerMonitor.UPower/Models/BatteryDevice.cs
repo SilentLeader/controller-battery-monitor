@@ -165,24 +165,6 @@ public sealed record BatteryDevice
     public bool IsGamingController => Type == DeviceType.GamingInput ||
                                      IsGamingControllerByName(DisplayName);
     
-    /// <summary>
-    /// Gets the estimated time remaining formatted as a string
-    /// </summary>
-    public string TimeRemainingFormatted
-    {
-        get
-        {
-            var seconds = State == BatteryState.Charging ? TimeToFull : TimeToEmpty;
-            if (seconds <= 0) return "Unknown";
-            
-            var timeSpan = TimeSpan.FromSeconds(seconds);
-            if (timeSpan.TotalHours >= 1)
-                return $"{timeSpan.Hours}h {timeSpan.Minutes}m";
-            else
-                return $"{timeSpan.Minutes}m";
-        }
-    }
-    
     private static bool IsGamingControllerByName(string name)
     {
         var lowerName = name.ToLowerInvariant();
@@ -193,7 +175,7 @@ public sealed record BatteryDevice
             "gamepad", "gaming", "pro controller"
         };
         
-        return gamingKeywords.Any(keyword => lowerName.Contains(keyword));
+        return gamingKeywords.Any(lowerName.Contains);
     }
     
     public override string ToString()
