@@ -264,6 +264,7 @@ public sealed class UPowerPropertyConverter
             var levelValue = GetUInt32Property(devicePtr, "battery-level");
             if (Enum.IsDefined(typeof(BatteryLevel), (int)levelValue))
             {
+                _logger.LogDebug("Battery level value: {LevelValue}", levelValue);
                 return (BatteryLevel)levelValue;
             }
             

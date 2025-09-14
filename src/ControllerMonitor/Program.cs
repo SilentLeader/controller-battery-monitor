@@ -19,6 +19,8 @@ namespace ControllerMonitor;
 
 static class Program
 {
+    private const string LogLevelPAramName = "--log-level=";
+
     public static IServiceProvider? ServiceProvider { get; private set; }
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
@@ -27,9 +29,11 @@ static class Program
     public static void Main(string[] args)
     {
         // Configure Serilog
-        Log.Logger = new LoggerConfiguration()
-            .WriteTo.Console()
-            .CreateLogger();
+        var loggerconfig = new LoggerConfiguration()
+            .WriteTo.Console();
+        SetLogLevel(args, loggerconfig);
+
+        Log.Logger = loggerconfig.CreateLogger();
 
         // Set up dependency injection
         ConfigureServices();
@@ -57,6 +61,43 @@ static class Program
         catch (Exception ex)
         {
             Log.Logger.Fatal(ex, "Fatael error");
+        }
+    }
+
+    // Avalonia configuration, don't remove; also used by visual designer.
+    public static AppBuilder BuildAvaloniaApp()
+        => AppBuilder.Configure<App>()
+            .UsePlatformDetect()
+            .WithInterFont()
+            .LogToTrace();
+
+    private static void SetLogLevel(string[] args, LoggerConfiguration loggerconfig)
+    {
+        if (args.Length > 0 && args.Any(x => x.StartsWith(LogLevelPAramName, StringComparison.InvariantCultureIgnoreCase)))
+        {
+            var logLevelParam = args.First(x => x.StartsWith(LogLevelPAramName, StringComparison.InvariantCultureIgnoreCase));
+            var logLevel = logLevelParam[LogLevelPAramName.Length..];
+            switch (logLevel.ToLower())
+            {
+                case "verbose":
+                    loggerconfig.MinimumLevel.Verbose();
+                    break;
+                case "debug":
+                    loggerconfig.MinimumLevel.Debug();
+                    break;
+                case "warning":
+                    loggerconfig.MinimumLevel.Warning();
+                    break;
+                case "error":
+                    loggerconfig.MinimumLevel.Error();
+                    break;
+                case "fatal":
+                    loggerconfig.MinimumLevel.Fatal();
+                    break;
+                default:
+                    loggerconfig.MinimumLevel.Information();
+                    break;
+            }
         }
     }
 
@@ -98,10 +139,5 @@ static class Program
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
-            .UsePlatformDetect()
-            .WithInterFont()
-            .LogToTrace();
+    
 }
