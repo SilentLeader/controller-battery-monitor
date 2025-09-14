@@ -43,23 +43,10 @@ internal static class UPowerNative
     #region Device Property Functions
     
     /// <summary>
-    /// Gets device property as GVariant
-    /// </summary>
-    [DllImport(LibUPower, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern IntPtr up_device_get_property(IntPtr device, [MarshalAs(UnmanagedType.LPStr)] string property);
-    
-    /// <summary>
     /// Gets device object path
     /// </summary>
     [DllImport(LibUPower, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr up_device_get_object_path(IntPtr device);
-    
-    /// <summary>
-    /// Refreshes device properties from daemon
-    /// </summary>
-    [DllImport(LibUPower, CallingConvention = CallingConvention.Cdecl)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool up_device_refresh(IntPtr device);
     
     #endregion
     
@@ -239,14 +226,6 @@ internal static class UPowerNative
     #region GLib Signal Functions
     
     /// <summary>
-    /// Connects signal handler to GObject
-    /// </summary>
-    [DllImport(LibGObject, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern ulong g_signal_connect_data(IntPtr instance, 
-        [MarshalAs(UnmanagedType.LPStr)] string detailed_signal, 
-        IntPtr callback, IntPtr data, IntPtr destroy_notify, int connect_flags);
-    
-    /// <summary>
     /// Disconnects signal handler from GObject
     /// </summary>
     [DllImport(LibGObject, CallingConvention = CallingConvention.Cdecl)]
@@ -279,37 +258,6 @@ internal static class UPowerNative
     #region GVariant Functions
     
     /// <summary>
-    /// Gets double value from GVariant
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern double g_variant_get_double(IntPtr variant);
-    
-    /// <summary>
-    /// Gets string value from GVariant
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern IntPtr g_variant_get_string(IntPtr variant, out nuint length);
-    
-    /// <summary>
-    /// Gets int32 value from GVariant
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern int g_variant_get_int32(IntPtr variant);
-    
-    /// <summary>
-    /// Gets int64 value from GVariant
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern long g_variant_get_int64(IntPtr variant);
-    
-    /// <summary>
-    /// Gets boolean value from GVariant
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool g_variant_get_boolean(IntPtr variant);
-    
-    /// <summary>
     /// Unreferences GVariant
     /// </summary>
     [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
@@ -317,35 +265,8 @@ internal static class UPowerNative
     
     #endregion
     
-    #region GLib Error Handling
-    
-    /// <summary>
-    /// Frees GError structure
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern void g_error_free(IntPtr error);
-    
-    #endregion
-    
     #region Helper Methods
-    
-    /// <summary>
-    /// Safely converts IntPtr to UTF-8 string and frees the native memory
-    /// </summary>
-    internal static string? PtrToStringUTF8AndFree(IntPtr ptr)
-    {
-        if (ptr == IntPtr.Zero) return null;
         
-        try
-        {
-            return Marshal.PtrToStringUTF8(ptr);
-        }
-        finally
-        {
-            g_free(ptr);
-        }
-    }
-    
     /// <summary>
     /// Safely converts IntPtr to UTF-8 string without freeing memory
     /// </summary>
