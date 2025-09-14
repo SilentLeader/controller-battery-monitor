@@ -1,17 +1,15 @@
 using System;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using ControllerMonitor.ViewModels;
 using ControllerMonitor.Services;
 using ControllerMonitor.Interfaces;
-using ControllerMonitor.ValueObjects;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
-using BatteryLevel = ControllerMonitor.UPower.ValueObjects.BatteryLevel;
-
 
 #if LINUX
+using System.Linq;
+using Microsoft.Extensions.DependencyInjection;
+using BatteryLevel = ControllerMonitor.UPower.ValueObjects.BatteryLevel;
 using ControllerMonitor.UPower.Services;
 using ControllerMonitor.UPower.Models;
 using ControllerMonitor.UPower.ValueObjects;

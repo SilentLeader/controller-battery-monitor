@@ -38,7 +38,7 @@ public class BatteryMonitorWindows(ISettingsService settingsService, ILogger<IBa
                             batteryInfo.Level = ConvertBatteryLevel(batteryInfoXInput.BatteryLevel);
                             batteryInfo.IsCharging = batteryInfoXInput.BatteryType == BatteryType.BATTERY_TYPE_WIRED;
                             batteryInfo.Capacity = null; // XInput doesn't provide percentage
-                            batteryInfo.ModelName = GetControllerModelName(i, batteryInfoXInput.BatteryType);
+                            batteryInfo.ModelName = "Generic controller";
                             
                             // Return info for first connected controller
                             break;

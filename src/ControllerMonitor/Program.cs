@@ -11,7 +11,9 @@ using ControllerMonitor.Windows;
 using System.Runtime.InteropServices;
 using ControllerMonitor.Platforms.Windows;
 using ControllerMonitor.Platforms.Linux;
+#if LINUX
 using ControllerMonitor.UPower.Extensions;
+#endif
 
 namespace ControllerMonitor;
 
