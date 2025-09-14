@@ -51,11 +51,18 @@
     <TrayIcon.Icons>
         <TrayIcons>
             <TrayIcon x:DataType="vm:AppViewModel" Clicked="ShowMainWindow_Click">
+                <TrayIcon.IsVisible>
+                    <MultiBinding Converter="{StaticResource TrayIconVisibilityConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo.Status" />
+                        <Binding Path="Settings.HideTrayIconWhenDisconnected" />
+                    </MultiBinding>
+                </TrayIcon.IsVisible>
                 <TrayIcon.ToolTipText>
                     <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
                         <Binding Path="ControllerInfo.BatteryInfo.Level" />
                         <Binding Path="ControllerInfo.BatteryInfo.Status" />
                         <Binding Path="ControllerInfo.Name" />
+                        <Binding Path="Settings.HideTrayIconWhenDisconnected" />
                     </MultiBinding>
                 </TrayIcon.ToolTipText>
                 <TrayIcon.Icon>
@@ -63,14 +70,9 @@
                         <Binding Path="ControllerInfo.BatteryInfo.Level" />
                         <Binding Path="ControllerInfo.BatteryInfo.Status" />
                         <Binding Path="ThemeVariant" />
-                    </MultiBinding>
-                </TrayIcon.Icon>
-                <TrayIcon.IsVisible>
-                    <MultiBinding Converter="{StaticResource TrayIconVisibilityConverter}">
-                        <Binding Path="ControllerInfo.BatteryInfo.Status" />
                         <Binding Path="Settings.HideTrayIconWhenDisconnected" />
                     </MultiBinding>
-                </TrayIcon.IsVisible>
+                </TrayIcon.Icon>
                 <TrayIcon.Menu>
                     <NativeMenu>
                         <NativeMenuItem IsEnabled="False" x:DataType="vm:AppViewModel">
@@ -79,6 +81,7 @@
                                     <Binding Path="ControllerInfo.BatteryInfo.Level" />
                                     <Binding Path="ControllerInfo.BatteryInfo.Status" />
                                     <Binding Path="ControllerInfo.Name" />
+                                    <Binding Path="Settings.HideTrayIconWhenDisconnected" />
                                 </MultiBinding>
                             </NativeMenuItem.Header>
                         </NativeMenuItem>

@@ -22,6 +22,15 @@ namespace ControllerMonitor.Converters
             var level = values[0] as BatteryLevel? ?? BatteryLevel.Unknown;
             var status = values[1] as ConnectionStatus? ?? ConnectionStatus.Disconnected;
             var themeVariant = values[2] as ThemeVariant ?? Application.Current?.ActualThemeVariant;
+            
+            // Check if we have hideTrayIconWhenDisconnected setting as 4th parameter
+            var hideTrayIconWhenDisconnected = values.Count > 3 ? values[3] as bool? ?? false : false;
+            
+            // If controller is disconnected and we should hide tray icon, return null
+            if (status == ConnectionStatus.Disconnected && hideTrayIconWhenDisconnected)
+            {
+                return null;
+            }
 
             var iconName = GetIconName(level, status);
             var theme = themeVariant == ThemeVariant.Dark ? "dark" : "light";
