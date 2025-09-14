@@ -14,8 +14,7 @@
     <Window.Icon>
         <MultiBinding Converter="{StaticResource BatteryLevelToIconConverter}">
             <Binding Path="ControllerInfo.BatteryInfo.Level" />
-            <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
-            <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+            <Binding Path="ControllerInfo.BatteryInfo.Status" />
             <Binding Path="ThemeVariant" />
         </MultiBinding>
     </Window.Icon>
@@ -29,10 +28,8 @@
                     <TextBlock Text="Capacity:" Margin="0,10,0,0" />
                     <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Capacity}" FontSize="16" />
                 </StackPanel>
-                <TextBlock Text="Charging:" Margin="0,10,0,0" />
-                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.IsCharging}" FontSize="16" />
-                <TextBlock Text="Connected:" Margin="0,10,0,0" />
-                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.IsConnected}" FontSize="16" />
+                <TextBlock Text="Status:" Margin="0,10,0,0" />
+                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Status}" FontSize="16" />
             </StackPanel>
         </TabItem>
         <TabItem Header="Settings">

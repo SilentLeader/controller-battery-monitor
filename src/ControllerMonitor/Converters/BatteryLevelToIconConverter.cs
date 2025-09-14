@@ -20,11 +20,10 @@ namespace ControllerMonitor.Converters
             if (values.Count < 3) return null;
 
             var level = values[0] as BatteryLevel? ?? BatteryLevel.Unknown;
-            var isCharging = values[1] as bool? ?? false;
-            var isConnected = values[2] as bool? ?? false;
-            var themeVariant = values[3] as ThemeVariant ?? Application.Current?.ActualThemeVariant;
+            var status = values[1] as ConnectionStatus? ?? ConnectionStatus.Disconnected;
+            var themeVariant = values[2] as ThemeVariant ?? Application.Current?.ActualThemeVariant;
 
-            var iconName = GetIconName(level, isCharging, isConnected);
+            var iconName = GetIconName(level, status);
             var theme = themeVariant == ThemeVariant.Dark ? "dark" : "light";
             var uri = new Uri($"avares://ControllerMonitor/Assets/icons/{theme}/{iconName}.png");
             
@@ -65,25 +64,21 @@ namespace ControllerMonitor.Converters
             });
         }
 
-        private static string GetIconName(BatteryLevel level, bool isCharging, bool isConnected)
+        private static string GetIconName(BatteryLevel level, ConnectionStatus status)
         {
-            if (!isConnected)
+            return status switch
             {
-                return "battery_disconnected";
-            }
-
-            if (isCharging)
-            {
-                return "battery_charging";
-            }
-
-            return level switch
-            {
-                BatteryLevel.Full => "battery_full",
-                BatteryLevel.High => "battery_high",
-                BatteryLevel.Normal => "battery_normal",
-                BatteryLevel.Low => "battery_low",
-                BatteryLevel.Empty => "battery_empty",
+                ConnectionStatus.Disconnected => "battery_disconnected",
+                ConnectionStatus.Charging => "battery_charging",
+                ConnectionStatus.Connected => level switch
+                {
+                    BatteryLevel.Full => "battery_full",
+                    BatteryLevel.High => "battery_high",
+                    BatteryLevel.Normal => "battery_normal",
+                    BatteryLevel.Low => "battery_low",
+                    BatteryLevel.Empty => "battery_empty",
+                    _ => "battery_unknown"
+                },
                 _ => "battery_unknown"
             };
         }

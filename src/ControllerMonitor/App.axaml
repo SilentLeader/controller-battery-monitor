@@ -53,22 +53,20 @@
                 <TrayIcon.ToolTipText>
                     <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
                         <Binding Path="ControllerInfo.BatteryInfo.Level" />
-                        <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
-                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="ControllerInfo.BatteryInfo.Status" />
                         <Binding Path="ControllerInfo.Name" />
                     </MultiBinding>
                 </TrayIcon.ToolTipText>
                 <TrayIcon.Icon>
                     <MultiBinding Converter="{StaticResource BatteryLevelToIconConverter}">
                         <Binding Path="ControllerInfo.BatteryInfo.Level" />
-                        <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
-                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="ControllerInfo.BatteryInfo.Status" />
                         <Binding Path="ThemeVariant" />
                     </MultiBinding>
                 </TrayIcon.Icon>
                 <TrayIcon.IsVisible>
                     <MultiBinding Converter="{StaticResource TrayIconVisibilityConverter}">
-                        <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                        <Binding Path="ControllerInfo.BatteryInfo.Status" />
                         <Binding Path="Settings.HideTrayIconWhenDisconnected" />
                     </MultiBinding>
                 </TrayIcon.IsVisible>
@@ -78,8 +76,7 @@
                             <NativeMenuItem.Header>
                                 <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
                                     <Binding Path="ControllerInfo.BatteryInfo.Level" />
-                                    <Binding Path="ControllerInfo.BatteryInfo.IsCharging" />
-                                    <Binding Path="ControllerInfo.BatteryInfo.IsConnected" />
+                                    <Binding Path="ControllerInfo.BatteryInfo.Status" />
                                     <Binding Path="ControllerInfo.Name" />
                                 </MultiBinding>
                             </NativeMenuItem.Header>
