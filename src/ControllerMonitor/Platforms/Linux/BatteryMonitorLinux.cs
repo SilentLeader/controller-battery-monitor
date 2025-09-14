@@ -244,7 +244,6 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             BatteryLevel.High => ControllerBatteryLevel.High,
             BatteryLevel.Normal => ControllerBatteryLevel.Normal,
             BatteryLevel.Low => ControllerBatteryLevel.Low,
-            BatteryLevel.none => ControllerBatteryLevel.Empty,
             BatteryLevel.Unknown => ControllerBatteryLevel.Unknown,
             _ => null
         };
