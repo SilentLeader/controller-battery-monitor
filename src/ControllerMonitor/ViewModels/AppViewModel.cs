@@ -103,9 +103,10 @@ public partial class AppViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
             ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
+            ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;
 
             // Set initial controller name with fallback logic
-            ControllerInfo.Name = GetControllerDisplayName(ControllerInfo.BatteryInfo);
+            ControllerInfo.Name = GetControllerDisplayName(batteryInfo);
         });
     }
 
