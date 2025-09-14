@@ -44,8 +44,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool disposedValue;
 
-    public bool IsCapacityVisible => ControllerInfo.BatteryInfo.Capacity != null;
-
     public MainWindowViewModel(
         IBatteryMonitorService batteryService,
         SettingsViewModel settings,

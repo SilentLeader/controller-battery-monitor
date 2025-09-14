@@ -11,6 +11,7 @@
         <converters:BatteryLevelToIconConverter x:Key="BatteryLevelToIconConverter" />
         <converters:BatteryInfoToTooltipConverter x:Key="BatteryInfoToTooltipConverter" />
         <converters:TrayIconVisibilityConverter x:Key="TrayIconVisibilityConverter" />
+        <converters:CapacityToVisibilityConverter x:Key="CapacityToVisibilityConverter" />
     </Application.Resources>
 
     <Application.Styles>
