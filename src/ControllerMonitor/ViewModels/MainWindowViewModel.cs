@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Timers;
 using Avalonia;
@@ -43,6 +44,11 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private ThemeVariant? themeVariant;
 
     private bool disposedValue;
+
+    /// <summary>
+    /// Gets a value indicating whether the current platform is Linux
+    /// </summary>
+    public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
     public MainWindowViewModel(
         IBatteryMonitorService batteryService,
