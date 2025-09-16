@@ -129,18 +129,6 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
                 return ConvertUPowerToViewModel(gamingDevice);
             }
             
-            // Fallback to any battery device (for broader compatibility)
-            var anyBatteryDevice = devices.FirstOrDefault(d =>
-                d.Type == DeviceType.Battery ||
-                d.Type == DeviceType.Mouse ||
-                d.Type == DeviceType.Keyboard ||
-                d.Type == DeviceType.Headset);
-                
-            if (anyBatteryDevice != null)
-            {
-                return ConvertUPowerToViewModel(anyBatteryDevice);
-            }
-            
             return null;
         }
         catch (UPowerException ex)

@@ -75,6 +75,32 @@ sudo dnf install libnotify
 sudo zypper install libnotify-tools
 ```
 
+For enhanced battery monitoring on Linux, install `upower`:
+
+**Debian/Ubuntu:**
+
+```bash
+sudo apt-get install upower
+```
+
+**Arch Linux:**
+
+```bash
+sudo pacman -S upower
+```
+
+**Fedora/RHEL:**
+
+```bash
+sudo dnf install upower
+```
+
+**OpenSUSE:**
+
+```bash
+sudo zypper install upower
+```
+
 After installation, you can:
 
 - Launch from your desktop environment's application menu
@@ -94,11 +120,12 @@ After installation, you can:
 
 ## Linux Implementation
 
-The Linux implementation reads battery information from `/sys/class/power_supply/` by:
+The Linux implementation uses UPower (or falls back to direct `/sys/class/power_supply/` access) to monitor game controller batteries by:
 
-- Scanning for battery devices
-- Identifying game controller batteries by model name
-- Parsing uevent files for capacity level and charging status
+- Using UPower D-Bus interface to enumerate battery devices
+- Identifying game controller batteries by device properties
+- Retrieving real-time capacity and charging status
+- Falling back to parsing uevent files if UPower is unavailable
 
 ## Windows Implementation
 

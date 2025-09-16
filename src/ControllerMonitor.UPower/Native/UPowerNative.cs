@@ -254,17 +254,7 @@ internal static class UPowerNative
     internal static extern void g_ptr_array_unref(IntPtr array);
     
     #endregion
-    
-    #region GVariant Functions
-    
-    /// <summary>
-    /// Unreferences GVariant
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern void g_variant_unref(IntPtr variant);
-    
-    #endregion
-    
+            
     #region Helper Methods
         
     /// <summary>
