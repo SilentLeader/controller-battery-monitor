@@ -9,12 +9,12 @@ namespace ControllerMonitor.UPower.Native;
 public sealed class SafeUPowerDeviceHandle : SafeHandleZeroOrMinusOneIsInvalid
 {
     public SafeUPowerDeviceHandle() : base(true) { }
-    
+
     public SafeUPowerDeviceHandle(IntPtr handle) : base(true)
     {
         SetHandle(handle);
     }
-    
+
     protected override bool ReleaseHandle()
     {
         if (!IsInvalid)
@@ -23,14 +23,20 @@ public sealed class SafeUPowerDeviceHandle : SafeHandleZeroOrMinusOneIsInvalid
         }
         return true;
     }
-    
+
     public static SafeUPowerDeviceHandle CreateFromPtr(IntPtr devicePtr)
     {
         if (devicePtr == IntPtr.Zero)
             return new SafeUPowerDeviceHandle();
-            
+
         // Increase reference count to take ownership
         var refPtr = UPowerNative.g_object_ref(devicePtr);
         return new SafeUPowerDeviceHandle(refPtr);
+    }
+
+    protected override void Dispose(bool disposing)
+    {
+        ReleaseHandle();
+        base.Dispose(disposing);
     }
 }

@@ -9,12 +9,12 @@ namespace ControllerMonitor.UPower.Native;
 public sealed class SafeUPowerClientHandle : SafeHandleZeroOrMinusOneIsInvalid
 {
     public SafeUPowerClientHandle() : base(true) { }
-    
+
     public SafeUPowerClientHandle(IntPtr handle) : base(true)
     {
         SetHandle(handle);
     }
-    
+
     protected override bool ReleaseHandle()
     {
         if (!IsInvalid)
@@ -23,10 +23,16 @@ public sealed class SafeUPowerClientHandle : SafeHandleZeroOrMinusOneIsInvalid
         }
         return true;
     }
-    
+
     public static SafeUPowerClientHandle CreateClient()
     {
         var clientPtr = UPowerNative.up_client_new();
         return new SafeUPowerClientHandle(clientPtr);
+    }
+    
+    protected override void Dispose(bool disposing)
+    {
+        ReleaseHandle();
+        base.Dispose(disposing);
     }
 }

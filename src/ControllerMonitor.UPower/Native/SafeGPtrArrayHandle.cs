@@ -9,12 +9,12 @@ namespace ControllerMonitor.UPower.Native;
 public sealed class SafeGPtrArrayHandle : SafeHandleZeroOrMinusOneIsInvalid
 {
     public SafeGPtrArrayHandle() : base(true) { }
-    
+
     public SafeGPtrArrayHandle(IntPtr handle) : base(true)
     {
         SetHandle(handle);
     }
-    
+
     protected override bool ReleaseHandle()
     {
         if (!IsInvalid)
@@ -23,14 +23,14 @@ public sealed class SafeGPtrArrayHandle : SafeHandleZeroOrMinusOneIsInvalid
         }
         return true;
     }
-    
+
     public uint Length => IsInvalid ? 0 : UPowerNative.g_ptr_array_len(handle);
-    
+
     public IntPtr GetElement(uint index)
     {
         if (IsInvalid || index >= Length)
             return IntPtr.Zero;
-            
+
         return UPowerNative.g_ptr_array_index(handle, index);
     }
 }

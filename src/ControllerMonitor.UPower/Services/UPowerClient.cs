@@ -254,7 +254,7 @@ public sealed class UPowerClient : IDisposable
                 _logger.LogDebug("Found {FilteredCount} relevant battery devices out of {TotalCount} total devices", 
                     devices.Count, deviceCount);
                 
-                return (IReadOnlyList<BatteryDevice>)devices.AsReadOnly();
+                return devices.AsReadOnly();
             });
         }, cancellationToken);
     }
