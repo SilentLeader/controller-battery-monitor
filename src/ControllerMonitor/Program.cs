@@ -26,7 +26,7 @@ static class Program
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
-    public static void Main(string[] args)
+    public static int Main(string[] args)
     {
         // Configure Serilog
         var loggerconfig = new LoggerConfiguration()
@@ -45,7 +45,7 @@ static class Program
                 {
                     // Another instance is running, bring it to front
                     singleInstanceService.BringExistingWindowToFront();
-                    return;
+                    return 2;
                 }
 
                 var settingsService = ServiceProvider!.GetRequiredService<ISettingsService>();
@@ -61,7 +61,10 @@ static class Program
         catch (Exception ex)
         {
             Log.Logger.Fatal(ex, "Fatal error");
+            return 1;
         }
+
+        return 0;
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
