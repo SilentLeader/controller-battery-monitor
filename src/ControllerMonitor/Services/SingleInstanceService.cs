@@ -12,11 +12,11 @@ namespace ControllerMonitor.Services;
 
 public class SingleInstanceService : IDisposable
 {
-    private static readonly string MutexName = $"{Environment.UserName}_ControllerMonitorSingleInstance";
+    private static readonly string LockFileName = Path.Combine(Path.GetTempPath(), $"{Environment.UserName}_ControllerMonitorSingleInstance.lock");
     private static readonly string PipeName = $"{Environment.UserName}_ControllerMonitorPipe";
 
     private readonly ILogger<SingleInstanceService> _logger;
-    private Mutex? _mutex;
+    private FileStream? _lockFile;
     private Task? _pipeTask;
     private CancellationTokenSource? _cancellationTokenSource;
     private MainWindow? _mainWindow;
@@ -35,18 +35,71 @@ public class SingleInstanceService : IDisposable
 
     public bool TryAcquireSingleInstance()
     {
-        _logger.LogInformation("Attempting to acquire single instance mutex: {MutexName}", MutexName);
-        _mutex = new Mutex(true, MutexName, out bool createdNew);
-        IsFirstInstance = createdNew;
-
-        if (IsFirstInstance)
+        _logger.LogInformation("Attempting to acquire single instance lock: {LockFileName}", LockFileName);
+        
+        try
         {
+            // Try to create and lock the file exclusively
+            _lockFile = new FileStream(LockFileName, FileMode.Create, FileAccess.Write, FileShare.None);
+            
+            // Write process ID to the lock file
+            using (var writer = new StreamWriter(_lockFile, leaveOpen: true))
+            {
+                writer.WriteLine(Environment.ProcessId);
+                writer.Flush();
+            }
+            _lockFile.Position = 0;
+            
+            IsFirstInstance = true;
             _logger.LogInformation("This is the first instance, starting pipe server");
             StartPipeServer();
         }
-        else
+        catch (IOException ex) when (ex.HResult == -2147024864) // File is being used by another process
         {
-            _logger.LogInformation("Another instance is already running");
+            _logger.LogInformation("Lock file is in use by another instance");
+            IsFirstInstance = false;
+            
+            // Try to read the process ID from the lock file to verify it's still running
+            try
+            {
+                if (File.Exists(LockFileName))
+                {
+                    var lockContent = File.ReadAllText(LockFileName).Trim();
+                    if (int.TryParse(lockContent, out int processId))
+                    {
+                        try
+                        {
+                            var process = System.Diagnostics.Process.GetProcessById(processId);
+                            if (process.HasExited)
+                            {
+                                _logger.LogInformation("Previous instance with PID {ProcessId} has exited, retrying lock acquisition", processId);
+                                File.Delete(LockFileName);
+                                return TryAcquireSingleInstance(); // Retry
+                            }
+                            else
+                            {
+                                _logger.LogInformation("Another instance is running with PID {ProcessId}", processId);
+                            }
+                        }
+                        catch (ArgumentException)
+                        {
+                            // Process doesn't exist, cleanup and retry
+                            _logger.LogInformation("Process {ProcessId} from lock file no longer exists, cleaning up", processId);
+                            File.Delete(LockFileName);
+                            return TryAcquireSingleInstance(); // Retry
+                        }
+                    }
+                }
+            }
+            catch (Exception cleanupEx)
+            {
+                _logger.LogWarning(cleanupEx, "Failed to cleanup stale lock file");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to acquire lock file");
+            IsFirstInstance = false;
         }
 
         return IsFirstInstance;
@@ -125,8 +178,42 @@ public class SingleInstanceService : IDisposable
 
     public void Dispose()
     {
+        _logger.LogInformation("Disposing SingleInstanceService");
+        
+        // Stop the pipe server first
         _cancellationTokenSource?.Cancel();
-        _pipeTask?.Wait();
-        _mutex?.Dispose();
+        
+        try
+        {
+            _pipeTask?.Wait(TimeSpan.FromSeconds(5)); // Wait up to 5 seconds for pipe server to stop
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Exception while waiting for pipe server to stop");
+        }
+        
+        // Release the lock file if we own it
+        if (_lockFile != null)
+        {
+            try
+            {
+                _lockFile.Dispose();
+                _lockFile = null;
+                
+                if (IsFirstInstance && File.Exists(LockFileName))
+                {
+                    File.Delete(LockFileName);
+                    _logger.LogInformation("Released lock file");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Exception while releasing lock file");
+            }
+        }
+        
+        _cancellationTokenSource?.Dispose();
+        _cancellationTokenSource = null;
+        _pipeTask = null;
     }
 }

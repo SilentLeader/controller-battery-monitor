@@ -9,23 +9,18 @@ namespace ControllerMonitor.UPower.Services;
 /// <summary>
 /// Core UPower client service providing async access to battery devices
 /// </summary>
-public sealed class UPowerClient : IDisposable
+public sealed class UPowerClient(
+    ILogger<UPowerClient> logger,
+    UPowerPropertyConverter propertyConverter) : IDisposable
 {
-    private readonly ILogger<UPowerClient> _logger;
-    private readonly UPowerPropertyConverter _propertyConverter;
+    private readonly ILogger<UPowerClient> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    private readonly UPowerPropertyConverter _propertyConverter = propertyConverter ?? throw new ArgumentNullException(nameof(propertyConverter));
     private readonly SemaphoreSlim _clientSemaphore = new(1, 1);
     private SafeUPowerClientHandle? _clientHandle;
     private bool _disposed;
     private readonly TimeSpan _operationTimeout = TimeSpan.FromSeconds(3);
-    
-    public UPowerClient(
-        ILogger<UPowerClient> logger,
-        UPowerPropertyConverter propertyConverter)
-    {
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _propertyConverter = propertyConverter ?? throw new ArgumentNullException(nameof(propertyConverter));
-    }
-    
+    private static readonly string[] _nativeLibraries = ["libupower-glib.so.3", "libglib-2.0.so.0", "libgobject-2.0.so.0"];
+
     /// <summary>
     /// Initializes the UPower client connection
     /// </summary>
@@ -320,9 +315,7 @@ public sealed class UPowerClient : IDisposable
     {
         return await Task.Run(() =>
         {
-            var libraryPaths = new[] { "libupower-glib.so.3", "libupower-glib.so.1", "libupower-glib.so" };
-            
-            foreach (var path in libraryPaths)
+            foreach (var path in _nativeLibraries)
             {
                 try
                 {
@@ -330,17 +323,16 @@ public sealed class UPowerClient : IDisposable
                     if (handle != IntPtr.Zero)
                     {
                         _logger.LogDebug("Successfully loaded UPower library: {Path}", path);
-                        return true;
-                        
                     }
                 }
                 catch (Exception ex)
                 {
                     _logger.LogDebug(ex, "Failed to load library from path: {Path}", path);
+                    return false;
                 }
             }
             
-            return false;
+            return true;
         }, cancellationToken);
     }
     
