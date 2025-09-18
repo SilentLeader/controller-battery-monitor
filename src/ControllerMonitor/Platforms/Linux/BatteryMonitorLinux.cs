@@ -12,7 +12,6 @@ using Microsoft.Extensions.DependencyInjection;
 using BatteryLevel = ControllerMonitor.UPower.ValueObjects.BatteryLevel;
 using ControllerMonitor.UPower.Services;
 using ControllerMonitor.UPower.Models;
-using ControllerMonitor.UPower.ValueObjects;
 using ControllerMonitor.UPower.Exceptions;
 using UPowerBatteryState = ControllerMonitor.UPower.ValueObjects.BatteryState;
 #endif

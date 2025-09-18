@@ -9,15 +9,10 @@ namespace ControllerMonitor.UPower.Services;
 /// <summary>
 /// Service for converting UPower device properties from native GVariant types
 /// </summary>
-public sealed class UPowerPropertyConverter
+public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> logger)
 {
-    private readonly ILogger<UPowerPropertyConverter> _logger;
-    
-    public UPowerPropertyConverter(ILogger<UPowerPropertyConverter> logger)
-    {
-        _logger = logger;
-    }
-    
+    private readonly ILogger<UPowerPropertyConverter> _logger = logger;
+
     /// <summary>
     /// Extracts all battery device properties from a UPower device handle
     /// </summary>
@@ -30,33 +25,20 @@ public sealed class UPowerPropertyConverter
                 var device = new BatteryDevice
                 {
                     ObjectPath = objectPath,
-                    NativePath = GetStringProperty(devicePtr, "native-path") ?? "",
                     Vendor = GetStringProperty(devicePtr, "vendor") ?? "",
                     Model = GetStringProperty(devicePtr, "model") ?? "",
                     Serial = GetStringProperty(devicePtr, "serial") ?? "",
                     Type = GetDeviceType(devicePtr),
-                    PowerSupply = GetBooleanProperty(devicePtr, "power-supply"),
-                    HasHistory = GetBooleanProperty(devicePtr, "has-history"),
-                    HasStatistics = GetBooleanProperty(devicePtr, "has-statistics"),
-                    Online = GetBooleanProperty(devicePtr, "online"),
                     Energy = GetDoubleProperty(devicePtr, "energy"),
                     EnergyEmpty = GetDoubleProperty(devicePtr, "energy-empty"),
                     EnergyFull = GetDoubleProperty(devicePtr, "energy-full"),
-                    EnergyFullDesign = GetDoubleProperty(devicePtr, "energy-full-design"),
-                    EnergyRate = GetDoubleProperty(devicePtr, "energy-rate"),
                     Voltage = GetDoubleProperty(devicePtr, "voltage"),
                     Percentage = GetDoubleProperty(devicePtr, "percentage"),
                     State = GetBatteryState(devicePtr),
                     Technology = GetBatteryTechnology(devicePtr),
-                    WarningLevel = GetWarningLevel(devicePtr),
                     BatteryLevelCurrent = GetBatteryLevel(devicePtr),
-                    TimeToEmpty = GetInt64Property(devicePtr, "time-to-empty"),
-                    TimeToFull = GetInt64Property(devicePtr, "time-to-full"),
                     Capacity = GetDoubleProperty(devicePtr, "capacity"),
-                    Temperature = GetDoubleProperty(devicePtr, "temperature"),
-                    IsPresent = GetBooleanProperty(devicePtr, "is-present"),
                     IsRechargeable = GetBooleanProperty(devicePtr, "is-rechargeable"),
-                    IconName = GetStringProperty(devicePtr, "icon-name") ?? "",
                     UpdateTime = DateTimeOffset.FromUnixTimeSeconds((long)GetUInt64Property(devicePtr, "update-time"))
                 };
                 
@@ -102,38 +84,6 @@ public sealed class UPowerPropertyConverter
         {
             _logger.LogDebug(ex, "Failed to get double property {PropertyName}", propertyName);
             return 0.0;
-        }
-    }
-    
-    /// <summary>
-    /// Gets an integer property from the device
-    /// </summary>
-    private int GetInt32Property(IntPtr devicePtr, string propertyName)
-    {
-        try
-        {
-            return UPowerNative.GetObjectIntProperty(devicePtr, propertyName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Failed to get int32 property {PropertyName}", propertyName);
-            return 0;
-        }
-    }
-    
-    /// <summary>
-    /// Gets a 64-bit integer property from the device
-    /// </summary>
-    private long GetInt64Property(IntPtr devicePtr, string propertyName)
-    {
-        try
-        {
-            return UPowerNative.GetObjectInt64Property(devicePtr, propertyName);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Failed to get int64 property {PropertyName}", propertyName);
-            return 0L;
         }
     }
     
@@ -279,29 +229,6 @@ public sealed class UPowerPropertyConverter
     }
     
     /// <summary>
-    /// Gets the battery warning level and converts it to the managed enum
-    /// </summary>
-    private BatteryLevel GetWarningLevel(IntPtr devicePtr)
-    {
-        try
-        {
-            var levelValue = GetUInt32Property(devicePtr, "warning-level");
-            if (Enum.IsDefined(typeof(BatteryLevel), (int)levelValue))
-            {
-                return (BatteryLevel)levelValue;
-            }
-            
-            _logger.LogDebug("Unknown warning level value: {LevelValue}", levelValue);
-            return BatteryLevel.Unknown;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogDebug(ex, "Failed to get warning level");
-            return BatteryLevel.Unknown;
-        }
-    }
-    
-    /// <summary>
     /// Validates device properties for consistency and completeness
     /// </summary>
     public bool ValidateDeviceProperties(BatteryDevice device)
@@ -331,24 +258,6 @@ public sealed class UPowerPropertyConverter
             issues.Add($"Suspicious voltage value: {device.Voltage}V");
         }
 
-        // Validate temperature
-        if (device.Temperature < -40 || device.Temperature > 100) // Reasonable temperature range
-        {
-            issues.Add($"Suspicious temperature value: {device.Temperature}°C");
-        }
-
-        // Validate time values
-        if (device.TimeToEmpty < 0 || device.TimeToFull < 0)
-        {
-            issues.Add("Negative time values detected");
-        }
-
-        // Validate state consistency
-        if (device.State == BatteryState.Charging && device.TimeToFull == 0)
-        {
-            issues.Add("Charging state but no time-to-full estimate");
-        }
-        
         if (issues.Any())
         {
             _logger.LogWarning("Device validation issues for {ObjectPath}: {Issues}",
@@ -373,12 +282,8 @@ public sealed class UPowerPropertyConverter
             Energy = Math.Max(0, device.Energy),
             EnergyFull = Math.Max(0, device.EnergyFull),
             EnergyEmpty = Math.Max(0, device.EnergyEmpty),
-            EnergyRate = Math.Max(0, device.EnergyRate),
             Voltage = Math.Max(0, device.Voltage),
-            Capacity = Math.Clamp(device.Capacity, 0, 100),
-            TimeToEmpty = Math.Max(0, device.TimeToEmpty),
-            TimeToFull = Math.Max(0, device.TimeToFull),
-            Temperature = Math.Clamp(device.Temperature, -40, 100)
+            Capacity = Math.Clamp(device.Capacity, 0, 100)
         };
     }
 }
