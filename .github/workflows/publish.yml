@@ -1,6 +1,11 @@
 name: Publish
 
 on:
+  push:
+    branches: [ main ]
+    tags: [ 'v*' ]
+  release:
+    types: [ published ]
   workflow_dispatch:
 
 permissions:
@@ -27,6 +32,7 @@ jobs:
   build-windows:
     needs: version
     runs-on: windows-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -45,6 +51,7 @@ jobs:
   build-linux:
     needs: version
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -131,6 +138,7 @@ jobs:
   release:
     needs: [version, build-windows, build-linux]
     runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -163,10 +171,10 @@ jobs:
       - name: Create Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v${{ needs.version.outputs.semver }}
-          name: Release v${{ needs.version.outputs.semver }}
+          tag_name: ${{ github.ref_name }}
+          name: Release ${{ github.ref_name }}
           body: |
-            ## Controller Monitor v${{ needs.version.outputs.semver }}
+            ## Controller Monitor ${{ github.ref_name }}
 
             This release includes builds for Windows and Linux.
 
