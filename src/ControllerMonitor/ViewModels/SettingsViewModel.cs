@@ -28,6 +28,7 @@ public partial class SettingsViewModel : ObservableObject
         NotifyOnControllerConnected = _data.NotifyOnControllerConnected;
         NotifyOnControllerDisconnected = _data.NotifyOnControllerDisconnected;
         NotifyOnBatteryLow = _data.NotifyOnBatteryLow;
+        Theme = _data.Theme;
     }
 
     [ObservableProperty]
@@ -60,6 +61,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private bool notifyOnBatteryLow;
 
+    [ObservableProperty]
+    private string theme;
+
     // Method to convert back to SettingsData for serialization
     public Settings ToSettingsData()
     {
@@ -74,7 +78,8 @@ public partial class SettingsViewModel : ObservableObject
             HideTrayIconWhenDisconnected = HideTrayIconWhenDisconnected,
             NotifyOnControllerConnected = NotifyOnControllerConnected,
             NotifyOnControllerDisconnected = NotifyOnControllerDisconnected,
-            NotifyOnBatteryLow = NotifyOnBatteryLow
+            NotifyOnBatteryLow = NotifyOnBatteryLow,
+            Theme = Theme
         };
     }
 }

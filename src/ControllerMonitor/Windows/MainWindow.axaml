@@ -9,7 +9,7 @@
         x:DataType="vm:MainWindowViewModel"
         Title="Controller Monitor"
         MinWidth="640"
-        MinHeight="410"
+        MinHeight="440"
         >
     <Window.Icon>
         <MultiBinding Converter="{StaticResource BatteryLevelToIconConverter}">
@@ -41,6 +41,14 @@
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <TextBlock Text="Update frequency (seconds):" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding Settings.UpdateFrequencySeconds}" Minimum="1" Maximum="60" Width="100" Margin="10,0,0,0" />
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Text="Theme:" VerticalAlignment="Center" />
+                    <ComboBox SelectedItem="{Binding Settings.Theme}" Width="120" Margin="10,0,0,0">
+                        <x:String>Auto</x:String>
+                        <x:String>Light</x:String>
+                        <x:String>Dark</x:String>
+                    </ComboBox>
                 </StackPanel>
                 <CheckBox Content="Hide tray icon when controller disconnected" 
                          IsChecked="{Binding Settings.HideTrayIconWhenDisconnected}" 

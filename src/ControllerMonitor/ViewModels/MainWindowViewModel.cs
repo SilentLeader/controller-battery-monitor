@@ -70,6 +70,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             themeVariant = Application.Current.ActualThemeVariant;
             Application.Current.ActualThemeVariantChanged += OnThemeVariantChanged;
+            
+            // Apply initial theme setting
+            ApplyThemeSetting(Settings.Theme);
         }
 
         _debounceTimer = new Timer(500)
@@ -110,6 +113,11 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     {
         if (e.PropertyName == nameof(Settings.UpdateFrequencySeconds))
         {
+        }
+        else if (e.PropertyName == nameof(Settings.Theme))
+        {
+            // Apply theme change immediately
+            ApplyThemeSetting(Settings.Theme);
         }
         // Debounced auto-save settings on change
         _debounceTimer.Stop();
@@ -171,6 +179,21 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             await Dispatcher.UIThread.InvokeAsync(() => ThemeVariant = Application.Current.ActualThemeVariant);
         }
+    }
+
+    private void ApplyThemeSetting(string theme)
+    {
+        if (Application.Current == null) return;
+
+        var themeVariant = theme switch
+        {
+            "Light" => ThemeVariant.Light,
+            "Dark" => ThemeVariant.Dark,
+            "Auto" => ThemeVariant.Default,
+            _ => ThemeVariant.Default
+        };
+
+        Application.Current.RequestedThemeVariant = themeVariant;
     }
                 
     protected virtual void Dispose(bool disposing)

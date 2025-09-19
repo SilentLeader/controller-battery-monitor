@@ -34,6 +34,9 @@ public class Settings
     [JsonPropertyName("notifyOnBatteryLow")]
     public bool NotifyOnBatteryLow { get; set; } = true;
 
+    [JsonPropertyName("theme")]
+    public string Theme { get; set; } = "Auto";
+
     public Settings ShallowCopy()
     {
         return (Settings)MemberwiseClone();
