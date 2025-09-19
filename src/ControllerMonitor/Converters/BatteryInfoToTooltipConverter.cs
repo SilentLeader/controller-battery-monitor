@@ -35,7 +35,9 @@ namespace ControllerMonitor.Converters
             
             string controllerName = !string.IsNullOrWhiteSpace(modelName) ? modelName : "Unknown Controller";
     
-            return $"{controllerName} - Battery: {level} - Status: {statusText}";
+            return status == ConnectionStatus.Disconnected 
+                ? "Controller disconnected" 
+                : $"{controllerName} - Battery: {level} - Status: {statusText}";
         }
     }
 }
