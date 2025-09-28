@@ -14,6 +14,10 @@ using ControllerMonitor.Platforms.Linux;
 #if LINUX
 using ControllerMonitor.UPower.Extensions;
 #endif
+#if WINDOWS
+using ControllerMonitor.XInput.Interfaces;
+using ControllerMonitor.XInput.Services;
+#endif
 
 namespace ControllerMonitor;
 
@@ -117,6 +121,9 @@ static class Program
         // Platfrom specific service registration
         if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
         {
+#if WINDOWS
+            services.AddSingleton<IXInputService, XInputService>();
+#endif
             services.AddSingleton<IBatteryMonitorService, BatteryMonitorWindows>();
             services.AddSingleton<ISettingsService, SettingsServiceWindows>();
 #if WINDOWS

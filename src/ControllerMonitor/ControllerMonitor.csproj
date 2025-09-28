@@ -49,6 +49,7 @@
 
 	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-x86' OR '$(RuntimeIdentifier)' == 'win-arm64' OR '$([MSBuild]::IsOSPlatform(Windows))' == 'true'">
 	    <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications" Version="7.1.3" />
+	    <ProjectReference Include="../ControllerMonitor.XInput/ControllerMonitor.XInput.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

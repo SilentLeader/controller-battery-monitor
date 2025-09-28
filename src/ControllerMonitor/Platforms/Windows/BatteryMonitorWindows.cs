@@ -1,7 +1,8 @@
 #if WINDOWS
-using System;
-using System.Runtime.InteropServices;
+using ControllerMonitor.XInput.Interfaces;
+using ControllerMonitor.XInput.Helpers;
 #endif
+using System;
 using System.Threading.Tasks;
 using ControllerMonitor.ViewModels;
 using ControllerMonitor.Services;
@@ -10,119 +11,67 @@ using Microsoft.Extensions.Logging;
 
 namespace ControllerMonitor.Platforms.Windows;
 
-public class BatteryMonitorWindows(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger) : BatteryMonitorServiceBase(settingsService, logger)
+public class BatteryMonitorWindows : BatteryMonitorServiceBase
 {
+#if WINDOWS
+    private readonly IXInputService _xInputService;
+
+    public BatteryMonitorWindows(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger, IXInputService xInputService) 
+        : base(settingsService, logger)
+    {
+        _xInputService = xInputService;
+    }
+#else
+    public BatteryMonitorWindows(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger) 
+        : base(settingsService, logger)
+    {
+    }
+#endif
+
     public override async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
     {
         var batteryInfo = new BatteryInfoViewModel { IsConnected = false };
 
-        await Task.Run(() => {
 #if WINDOWS
-            try
+        try
+        {
+            var controllerInfo = await _xInputService.GetFirstControllerBatteryInfoAsync();
+            
+            if (controllerInfo?.IsConnected == true)
             {
-                // Check up to 4 XInput controllers
-                for (uint i = 0; i < 4; i++)
-                {
-                    var state = new XInputState();
-                    uint result = XInputGetState(i, ref state);
-                    
-                    if (result == 0) // ERROR_SUCCESS
-                    {
-                        // Controller is connected, get battery info
-                        var batteryInfoXInput = new XInputBatteryInformation();
-                        uint batteryResult = XInputGetBatteryInformation(i, BatteryDeviceType.BATTERY_DEVTYPE_GAMEPAD, ref batteryInfoXInput);
-                        
-                        if (batteryResult == 0)
-                        {
-                            batteryInfo.IsConnected = true;
-                            batteryInfo.Level = ConvertBatteryLevel(batteryInfoXInput.BatteryLevel);
-                            batteryInfo.IsCharging = batteryInfoXInput.BatteryType == BatteryType.BATTERY_TYPE_WIRED;
-                            batteryInfo.Capacity = null; // XInput doesn't provide percentage
-                            batteryInfo.ModelName = "Generic controller";
-                            
-                            // Return info for first connected controller
-                            break;
-                        }
-                    }
-                }
+                batteryInfo.IsConnected = true;
+                // Convert XInput battery level to main project battery level
+                var xInputBatteryLevel = BatteryLevelConverter.ConvertBatteryLevel(controllerInfo.BatteryLevel);
+                batteryInfo.Level = ConvertXInputBatteryLevelToMainBatteryLevel(xInputBatteryLevel);
+                batteryInfo.IsCharging = controllerInfo.IsWired;
+                batteryInfo.Capacity = null; // XInput doesn't provide percentage
+                batteryInfo.ModelName = controllerInfo.ModelName;
             }
-            catch (Exception)
-            {
-                // Handle any errors gracefully
-                batteryInfo.IsConnected = false;
-            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting battery information from XInput service");
+            batteryInfo.IsConnected = false;
+        }
 #endif
-        });
 
         return batteryInfo;
     }
 
 #if WINDOWS
-    // XInput P/Invoke declarations
-    [DllImport("xinput1_4.dll", EntryPoint = "XInputGetState")]
-    private static extern uint XInputGetState(uint dwUserIndex, ref XInputState pState);
-
-    [DllImport("xinput1_4.dll", EntryPoint = "XInputGetBatteryInformation")]
-    private static extern uint XInputGetBatteryInformation(uint dwUserIndex, byte devType, ref XInputBatteryInformation pBatteryInformation);
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct XInputState
-    {
-        public uint dwPacketNumber;
-        public XInputGamepad Gamepad;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct XInputGamepad
-    {
-        public ushort wButtons;
-        public byte bLeftTrigger;
-        public byte bRightTrigger;
-        public short sThumbLX;
-        public short sThumbLY;
-        public short sThumbRX;
-        public short sThumbRY;
-    }
-
-    [StructLayout(LayoutKind.Sequential)]
-    private struct XInputBatteryInformation
-    {
-        public byte BatteryType;
-        public byte BatteryLevel;
-    }
-
-    private static class BatteryDeviceType
-    {
-        public const byte BATTERY_DEVTYPE_GAMEPAD = 0x00;
-        public const byte BATTERY_DEVTYPE_HEADSET = 0x01;
-    }
-
-    private static class BatteryType
-    {
-        public const byte BATTERY_TYPE_DISCONNECTED = 0x00;
-        public const byte BATTERY_TYPE_WIRED = 0x01;
-        public const byte BATTERY_TYPE_ALKALINE = 0x02;
-        public const byte BATTERY_TYPE_NIMH = 0x03;
-        public const byte BATTERY_TYPE_UNKNOWN = 0xFF;
-    }
-
-    private static class BatteryLevel
-    {
-        public const byte BATTERY_LEVEL_EMPTY = 0x00;
-        public const byte BATTERY_LEVEL_LOW = 0x01;
-        public const byte BATTERY_LEVEL_MEDIUM = 0x02;
-        public const byte BATTERY_LEVEL_FULL = 0x03;
-    }
-
-    private static ControllerMonitor.ValueObjects.BatteryLevel ConvertBatteryLevel(byte xInputLevel)
+    /// <summary>
+    /// Converts XInput project BatteryLevel to main project BatteryLevel
+    /// </summary>
+    private static ValueObjects.BatteryLevel ConvertXInputBatteryLevelToMainBatteryLevel(XInput.ValueObjects.XInputBatteryLevel xInputLevel)
     {
         return xInputLevel switch
         {
-            BatteryLevel.BATTERY_LEVEL_EMPTY => ControllerMonitor.ValueObjects.BatteryLevel.Empty,
-            BatteryLevel.BATTERY_LEVEL_LOW => ControllerMonitor.ValueObjects.BatteryLevel.Low,
-            BatteryLevel.BATTERY_LEVEL_MEDIUM => ControllerMonitor.ValueObjects.BatteryLevel.Normal,
-            BatteryLevel.BATTERY_LEVEL_FULL => ControllerMonitor.ValueObjects.BatteryLevel.Full,
-            _ => ControllerMonitor.ValueObjects.BatteryLevel.Unknown
+            XInput.ValueObjects.XInputBatteryLevel.Empty => ValueObjects.BatteryLevel.Empty,
+            XInput.ValueObjects.XInputBatteryLevel.Low => ValueObjects.BatteryLevel.Low,
+            XInput.ValueObjects.XInputBatteryLevel.Normal => ValueObjects.BatteryLevel.Normal,
+            XInput.ValueObjects.XInputBatteryLevel.High => ValueObjects.BatteryLevel.High,
+            XInput.ValueObjects.XInputBatteryLevel.Full => ValueObjects.BatteryLevel.Full,
+            _ => ValueObjects.BatteryLevel.Unknown
         };
     }
 #endif
