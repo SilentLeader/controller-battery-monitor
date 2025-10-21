@@ -46,9 +46,8 @@ namespace ControllerMonitor
                 {
                     CleanupAndShutdown(desktop);
                 };
-
             }
-            
+
             base.OnFrameworkInitializationCompleted();
         }
 
