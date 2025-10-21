@@ -5,6 +5,8 @@ using ControllerMonitor.Interfaces;
 using ControllerMonitor.ViewModels;
 using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.DependencyInjection;
+using Avalonia.Rendering;
+using System.Threading;
 
 namespace ControllerMonitor.Windows;
 
@@ -26,6 +28,7 @@ public partial class MainWindow : Window
         PropertyChanged += MainWindow_PropertyChanged;
         Opened += MainWindow_Opened;
         Closing += MainWindow_Closing;
+        Loaded += MainWindow_Loaded;
 
         _viewModel = viewModel;
         DataContext = _viewModel;
@@ -104,11 +107,6 @@ public partial class MainWindow : Window
         {
             WindowState = WindowState.Minimized;
         }
-        else if (_settings.StartClosed)
-        {
-            WindowState = WindowState.Minimized;
-            Hide();
-        }
     }
 
     private void MainWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
@@ -124,6 +122,15 @@ public partial class MainWindow : Window
         if (!_isShutdown && WindowState != WindowState.Minimized)
         {
             e.Cancel = true;
+            WindowState = WindowState.Minimized;
+            Hide();
+        }
+    }
+
+    private void MainWindow_Loaded(object? sender, EventArgs e)
+    {
+        if (_settings.StartClosed)
+        {
             WindowState = WindowState.Minimized;
             Hide();
         }
