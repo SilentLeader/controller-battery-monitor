@@ -37,7 +37,8 @@
         </TabItem>
         <TabItem Header="Settings">
             <StackPanel>
-                <CheckBox Content="Start minimized on startup" IsChecked="{Binding Settings.StartMinimized}" Margin="0,10,0,0" />
+                <CheckBox Content="Start minimized on startup" IsChecked="{Binding Settings.StartMinimized}" IsEnabled="{Binding !Settings.StartClosed}" Margin="0,10,0,0" />
+                <CheckBox Content="Start closed on startup" IsChecked="{Binding Settings.StartClosed}" Margin="0,10,0,0" />
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <TextBlock Text="Update frequency (seconds):" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding Settings.UpdateFrequencySeconds}" Minimum="1" Maximum="60" Width="100" Margin="10,0,0,0" />

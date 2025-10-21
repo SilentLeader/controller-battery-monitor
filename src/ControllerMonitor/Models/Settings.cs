@@ -18,6 +18,8 @@ public class Settings
 
     [JsonPropertyName("startMinimized")]
     public bool StartMinimized { get; set; } = true;
+    [JsonPropertyName("startClosed")]
+    public bool StartClosed { get; set; } = false;
 
     [JsonPropertyName("updateFrequencySeconds")]
     public int UpdateFrequencySeconds { get; set; } = 5;

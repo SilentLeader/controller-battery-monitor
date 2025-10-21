@@ -100,9 +100,14 @@ public partial class MainWindow : Window
 
     private void MainWindow_Opened(object? sender, EventArgs e)
     {
-        if (_settings.StartMinimized)
+        if (_settings.StartMinimized && !_settings.StartClosed)
         {
             WindowState = WindowState.Minimized;
+        }
+        else if (_settings.StartClosed)
+        {
+            WindowState = WindowState.Minimized;
+            Hide();
         }
     }
 
