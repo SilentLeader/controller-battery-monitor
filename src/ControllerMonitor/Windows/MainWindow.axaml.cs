@@ -11,16 +11,15 @@ namespace ControllerMonitor.Windows;
 public partial class MainWindow : Window
 {
     private MainWindowViewModel? _viewModel;
-    private SettingsViewModel _settings;
+    
     private bool _isShutdown = false;
 
-    public MainWindow() : this(Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>(), new SettingsViewModel(), Program.ServiceProvider!.GetRequiredService<INotificationService>())
+    public MainWindow() : this(Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>(), Program.ServiceProvider!.GetRequiredService<INotificationService>())
     {
     }
 
-    public MainWindow(MainWindowViewModel viewModel, SettingsViewModel settings, INotificationService notificationService)
+    public MainWindow(MainWindowViewModel viewModel, INotificationService notificationService)
     {
-        _settings = settings;
         InitializeComponent();
 
         PropertyChanged += MainWindow_PropertyChanged;
@@ -33,13 +32,13 @@ public partial class MainWindow : Window
         notificationService.Initialize(this);
 
         // Apply settings
-        Position = new PixelPoint((int)settings.WindowX, (int)settings.WindowY);
-        Width = settings.WindowWidth;
-        Height = settings.WindowHeight;
+        Position = new PixelPoint((int)viewModel.Settings.WindowX, (int)viewModel.Settings.WindowY);
+        Width = viewModel.Settings.WindowWidth;
+        Height = viewModel.Settings.WindowHeight;
 
         // Validate position is within screen bounds or if not set (default -1)
         var screens = Screens;
-        bool validPosition = settings.WindowX != -1 && settings.WindowY != -1;
+        bool validPosition = viewModel.Settings.WindowX != -1 && viewModel.Settings.WindowY != -1;
         if (validPosition)
         {
             foreach (var screen in screens.All)
@@ -100,7 +99,7 @@ public partial class MainWindow : Window
 
     private void MainWindow_Opened(object? sender, EventArgs e)
     {
-        if (_settings.StartMinimized)
+        if (_viewModel!.Settings.StartMinimized)
         {
             WindowState = WindowState.Minimized;
         }
@@ -108,9 +107,9 @@ public partial class MainWindow : Window
 
     private void MainWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property == Window.WindowStateProperty)
+        if (e.Property == WindowStateProperty && WindowState == WindowState.Minimized && _viewModel!.Settings.MinimizeToTray)
         {
-            ShowInTaskbar = WindowState != WindowState.Minimized;
+            ShowInTaskbar = false;
         }
     }
 
@@ -120,7 +119,6 @@ public partial class MainWindow : Window
         {
             e.Cancel = true;
             WindowState = WindowState.Minimized;
-            Hide();
         }
     }
 

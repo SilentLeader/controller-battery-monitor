@@ -19,6 +19,9 @@ public class Settings
     [JsonPropertyName("startMinimized")]
     public bool StartMinimized { get; set; } = true;
 
+    [JsonPropertyName("minimizeToTray")]
+    public bool MinimizeToTray { get; set; } = true;
+
     [JsonPropertyName("updateFrequencySeconds")]
     public int UpdateFrequencySeconds { get; set; } = 5;
 

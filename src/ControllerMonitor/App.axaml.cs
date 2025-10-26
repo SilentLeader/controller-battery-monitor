@@ -55,9 +55,9 @@ namespace ControllerMonitor
         {
             if (_mainWindow != null)
             {
-                _mainWindow.WindowState = WindowState.Normal;
-
+                _mainWindow.ShowInTaskbar = true;
                 _mainWindow.Show();
+
                 _mainWindow.Activate();
                 _mainWindow.Focus();
             }

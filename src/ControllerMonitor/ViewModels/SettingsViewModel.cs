@@ -17,6 +17,7 @@ public partial class SettingsViewModel : ObservableObject
         WindowWidth = _data.WindowWidth;
         WindowHeight = _data.WindowHeight;
         StartMinimized = _data.StartMinimized;
+        MinimizeToTray = _data.MinimizeToTray;
         UpdateFrequencySeconds = _data.UpdateFrequencySeconds;
         HideTrayIconWhenDisconnected = _data.HideTrayIconWhenDisconnected;
         // Workaround for Avalonia bug #19332 on Linux
@@ -47,6 +48,9 @@ public partial class SettingsViewModel : ObservableObject
     private bool startMinimized;
 
     [ObservableProperty]
+    private bool minimizeToTray;
+
+    [ObservableProperty]
     private int updateFrequencySeconds;
 
     [ObservableProperty]
@@ -74,6 +78,7 @@ public partial class SettingsViewModel : ObservableObject
             WindowWidth = WindowWidth,
             WindowHeight = WindowHeight,
             StartMinimized = StartMinimized,
+            MinimizeToTray = MinimizeToTray,
             UpdateFrequencySeconds = UpdateFrequencySeconds,
             HideTrayIconWhenDisconnected = HideTrayIconWhenDisconnected,
             NotifyOnControllerConnected = NotifyOnControllerConnected,
