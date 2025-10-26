@@ -11,7 +11,7 @@ namespace ControllerMonitor.Windows;
 public partial class MainWindow : Window
 {
     private MainWindowViewModel? _viewModel;
-    
+
     private bool _isShutdown = false;
 
     public MainWindow() : this(Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>(), Program.ServiceProvider!.GetRequiredService<INotificationService>())
@@ -23,7 +23,7 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         PropertyChanged += MainWindow_PropertyChanged;
-        Opened += MainWindow_Opened;
+        Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
 
         _viewModel = viewModel;
@@ -97,7 +97,7 @@ public partial class MainWindow : Window
         }
     }
 
-    private void MainWindow_Opened(object? sender, EventArgs e)
+    private void MainWindow_Loaded(object? sender, EventArgs e)
     {
         if (_viewModel!.Settings.StartMinimized)
         {
@@ -107,15 +107,12 @@ public partial class MainWindow : Window
 
     private void MainWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property == WindowStateProperty && WindowState == WindowState.Minimized && _viewModel!.Settings.MinimizeToTray)
+        if (e.Property == WindowStateProperty 
+            && WindowState == WindowState.Minimized 
+            && _viewModel!.Settings.MinimizeToTray)
         {
             ShowInTaskbar = false;
             Hide();
-        }
-        else if (e.Property == WindowStateProperty && WindowState != WindowState.Minimized)
-        {
-            ShowInTaskbar = true;
-            Show();
         }
     }
 
