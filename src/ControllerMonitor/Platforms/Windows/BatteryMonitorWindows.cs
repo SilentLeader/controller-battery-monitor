@@ -53,9 +53,11 @@ public class BatteryMonitorWindows : BatteryMonitorServiceBase
             _logger.LogError(ex, "Error getting battery information from XInput service");
             batteryInfo.IsConnected = false;
         }
-#endif
 
         return batteryInfo;
+#else
+        return await Task.FromResult(batteryInfo) ;
+#endif  
     }
 
 #if WINDOWS
