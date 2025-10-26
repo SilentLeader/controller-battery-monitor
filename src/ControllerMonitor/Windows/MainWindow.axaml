@@ -38,6 +38,7 @@
         <TabItem Header="Settings">
             <StackPanel>
                 <CheckBox Content="Start minimized on startup" IsChecked="{Binding Settings.StartMinimized}" Margin="0,10,0,0" />
+                <CheckBox Content="Minimize to tray" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,10,0,0" />
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <TextBlock Text="Update frequency (seconds):" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding Settings.UpdateFrequencySeconds}" Minimum="1" Maximum="60" Width="100" Margin="10,0,0,0" />
