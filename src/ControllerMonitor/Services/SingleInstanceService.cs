@@ -54,7 +54,7 @@ public class SingleInstanceService : IDisposable
             _logger.LogInformation("This is the first instance, starting pipe server");
             StartPipeServer();
         }
-        catch (IOException ex) when (ex.HResult == -2147024864) // File is being used by another process
+        catch (IOException ex) when (ex.HResult == -2147024864 || ex.HResult == 11) // File is being used by another process
         {
             _logger.LogInformation("Lock file is in use by another instance");
             IsFirstInstance = false;
@@ -118,9 +118,11 @@ public class SingleInstanceService : IDisposable
                     using (StreamWriter writer = new StreamWriter(pipeClient))
                     {
                         writer.WriteLine("SHOW");
+                        writer.Flush();
                     }
                 }
                 _logger.LogInformation("Successfully sent show command to existing instance");
+                Thread.Sleep(200);
             }
             catch
             {
