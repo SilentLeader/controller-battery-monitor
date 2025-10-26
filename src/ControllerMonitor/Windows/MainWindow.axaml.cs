@@ -110,6 +110,12 @@ public partial class MainWindow : Window
         if (e.Property == WindowStateProperty && WindowState == WindowState.Minimized && _viewModel!.Settings.MinimizeToTray)
         {
             ShowInTaskbar = false;
+            Hide();
+        }
+        else if (e.Property == WindowStateProperty && WindowState != WindowState.Minimized)
+        {
+            ShowInTaskbar = true;
+            Show();
         }
     }
 
