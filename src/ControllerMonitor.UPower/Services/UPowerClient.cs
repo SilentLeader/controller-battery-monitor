@@ -105,105 +105,6 @@ public sealed class UPowerClient(
     }
     
     /// <summary>
-    /// Gets a specific device by its object path
-    /// </summary>
-    public async Task<BatteryDevice?> GetDeviceAsync(string objectPath, CancellationToken cancellationToken = default)
-    {
-        if (string.IsNullOrEmpty(objectPath))
-            throw new ArgumentException("Object path cannot be null or empty", nameof(objectPath));
-            
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(UPowerClient));
-        
-        var devices = await GetDevicesAsync(cancellationToken);
-        return devices.FirstOrDefault(d => d.ObjectPath == objectPath);
-    }
-    
-    
-    
-    /// <summary>
-    /// Checks whether the system is running on battery power
-    /// </summary>
-    public async Task<bool> IsOnBatteryAsync(CancellationToken cancellationToken = default)
-    {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(UPowerClient));
-            
-        if (!await EnsureInitializedAsync(cancellationToken))
-        {
-            return false;
-        }
-        
-        try
-        {
-            using var timeout = new CancellationTokenSource(_operationTimeout);
-            using var combined = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-            
-            return await Task.Run(() =>
-            {
-                combined.Token.ThrowIfCancellationRequested();
-                return _clientHandle!.UseHandle(clientPtr => 
-                    UPowerNative.up_client_get_on_battery(clientPtr));
-            }, combined.Token);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw new UPowerOperationCancelledException("IsOnBatteryAsync", cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            throw new UPowerTimeoutException("IsOnBatteryAsync", _operationTimeout);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to check battery status");
-            throw UPowerExceptionHelpers.WrapException(ex, "IsOnBatteryAsync");
-        }
-    }
-    
-    /// <summary>
-    /// Sets the laptop lid closed state
-    /// </summary>
-    public async Task SetLidIsClosedAsync(bool isClosed, CancellationToken cancellationToken = default)
-    {
-        if (_disposed)
-            throw new ObjectDisposedException(nameof(UPowerClient));
-            
-        if (!await EnsureInitializedAsync(cancellationToken))
-        {
-            throw new UPowerDaemonUnavailableException("Cannot set lid state - UPower client not initialized");
-        }
-        
-        try
-        {
-            using var timeout = new CancellationTokenSource(_operationTimeout);
-            using var combined = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeout.Token);
-            
-            await Task.Run(() =>
-            {
-                combined.Token.ThrowIfCancellationRequested();
-                _clientHandle!.UseHandle(clientPtr => 
-                    UPowerNative.up_client_set_lid_is_closed(clientPtr, isClosed));
-            }, combined.Token);
-            
-            _logger.LogDebug("Set lid closed state to {IsClosed}", isClosed);
-        }
-        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
-        {
-            throw new UPowerOperationCancelledException("SetLidIsClosedAsync", cancellationToken);
-        }
-        catch (OperationCanceledException)
-        {
-            throw new UPowerTimeoutException("SetLidIsClosedAsync", _operationTimeout);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to set lid closed state");
-            throw UPowerExceptionHelpers.WrapException(ex, "SetLidIsClosedAsync");
-        }
-    }
-    
-    /// <summary>
     /// Internal method to get devices with proper error handling
     /// </summary>
     private async Task<IReadOnlyList<BatteryDevice>> GetDevicesInternalAsync(CancellationToken cancellationToken)
@@ -348,13 +249,6 @@ public sealed class UPowerClient(
         }, cancellationToken);
     }
     
-    /// <summary>
-    /// Gets the internal client handle for event monitoring
-    /// </summary>
-    internal SafeUPowerClientHandle? GetClientHandle()
-    {
-        return _clientHandle;
-    }
     
     public void Dispose()
     {

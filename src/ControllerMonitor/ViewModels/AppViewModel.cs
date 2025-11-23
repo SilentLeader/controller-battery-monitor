@@ -16,7 +16,7 @@ public partial class AppViewModel : ObservableObject, IDisposable
     private ControllerInfoViewModel controllerInfo = new();
 
     [ObservableProperty]
-    private SettingsViewModel settings;
+    private SettingsViewModel _settings;
 
     [ObservableProperty]
     private ThemeVariant? themeVariant;
@@ -24,6 +24,7 @@ public partial class AppViewModel : ObservableObject, IDisposable
     private bool disposedValue;
     private readonly IBatteryMonitorService _batteryService;
     private readonly ISettingsService _settingsService;
+    private readonly ILogger<AppViewModel> _logger;
 
     public AppViewModel(
         IBatteryMonitorService batteryService,
@@ -32,8 +33,9 @@ public partial class AppViewModel : ObservableObject, IDisposable
         ILogger<AppViewModel> logger)
     {
         _batteryService = batteryService;
-        this.settings = settings;
+        _settings = settings;
         _settingsService = settingsService;
+        _logger = logger;
         if (Application.Current != null)
         {
             themeVariant = Application.Current.ActualThemeVariant;
@@ -43,9 +45,12 @@ public partial class AppViewModel : ObservableObject, IDisposable
         _batteryService.BatteryInfoChanged += OnBatteryInfoChanged;
         _settingsService.SettingsChanged += OnSettingsChanged;
 
-        _ = Task.Run(async () =>
-        {
-            try
+        _ = InitializeBatteryInfoAsync();
+    }
+
+    private async Task InitializeBatteryInfoAsync()
+    {
+        try
             {
                 var initialInfo = await _batteryService.GetBatteryInfoAsync();
                 await Dispatcher.UIThread.InvokeAsync(() =>
@@ -62,9 +67,8 @@ public partial class AppViewModel : ObservableObject, IDisposable
             }
             catch (Exception ex)
             {
-                logger?.LogError(ex, "Failed initialize battery info");
+                _logger?.LogError(ex, "Failed initialize battery info");
             }
-        });
     }
 
     protected virtual void Dispose(bool disposing)

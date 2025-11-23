@@ -7,11 +7,6 @@ public sealed class UPowerOperationCancelledException : UPowerException
 {
     public string? Operation { get; }
     
-    public UPowerOperationCancelledException() 
-        : base("Operation was cancelled") { }
-    
-    public UPowerOperationCancelledException(string message) : base(message) { }
-    
     public UPowerOperationCancelledException(string operation, CancellationToken cancellationToken) 
         : base($"Operation '{operation}' was cancelled")
     {

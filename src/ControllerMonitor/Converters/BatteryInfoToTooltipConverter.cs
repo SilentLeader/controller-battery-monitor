@@ -4,40 +4,39 @@ using System;
 using System.Collections.Generic;
 using System.Globalization;
 
-namespace ControllerMonitor.Converters
+namespace ControllerMonitor.Converters;
+
+public class BatteryInfoToTooltipConverter : IMultiValueConverter
 {
-    public class BatteryInfoToTooltipConverter : IMultiValueConverter
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
+        if (values.Count < 2) return "Controller Monitor";
+
+        var level = values[0] as BatteryLevel? ?? BatteryLevel.Unknown;
+        var status = values[1] as ConnectionStatus? ?? ConnectionStatus.Disconnected;
+        var modelName = values.Count > 2 ? values[2] as string : null;
+        
+        // Check if we have hideTrayIconWhenDisconnected setting as 4th parameter
+        var hideTrayIconWhenDisconnected = values.Count > 3 ? values[3] as bool? ?? false : false;
+        
+        // If controller is disconnected and we should hide tray icon, return default tooltip
+        if (status == ConnectionStatus.Disconnected && hideTrayIconWhenDisconnected)
         {
-            if (values.Count < 2) return "Controller Monitor";
-    
-            var level = values[0] as BatteryLevel? ?? BatteryLevel.Unknown;
-            var status = values[1] as ConnectionStatus? ?? ConnectionStatus.Disconnected;
-            var modelName = values.Count > 2 ? values[2] as string : null;
-            
-            // Check if we have hideTrayIconWhenDisconnected setting as 4th parameter
-            var hideTrayIconWhenDisconnected = values.Count > 3 ? values[3] as bool? ?? false : false;
-            
-            // If controller is disconnected and we should hide tray icon, return default tooltip
-            if (status == ConnectionStatus.Disconnected && hideTrayIconWhenDisconnected)
-            {
-                return "Controller Monitor";
-            }
-    
-            string statusText = status switch
-            {
-                ConnectionStatus.Disconnected => "Disconnected",
-                ConnectionStatus.Connected => "Connected",
-                ConnectionStatus.Charging => "Charging",
-                _ => "Unknown"
-            };
-            
-            string controllerName = !string.IsNullOrWhiteSpace(modelName) ? modelName : "Unknown Controller";
-    
-            return status == ConnectionStatus.Disconnected 
-                ? "Controller disconnected" 
-                : $"{controllerName} - Battery: {level} - Status: {statusText}";
+            return "Controller Monitor";
         }
+
+        string statusText = status switch
+        {
+            ConnectionStatus.Disconnected => "Disconnected",
+            ConnectionStatus.Connected => "Connected",
+            ConnectionStatus.Charging => "Charging",
+            _ => "Unknown"
+        };
+        
+        string controllerName = !string.IsNullOrWhiteSpace(modelName) ? modelName : "Unknown Controller";
+
+        return status == ConnectionStatus.Disconnected 
+            ? "Controller disconnected" 
+            : $"{controllerName} - Battery: {level} - Status: {statusText}";
     }
 }

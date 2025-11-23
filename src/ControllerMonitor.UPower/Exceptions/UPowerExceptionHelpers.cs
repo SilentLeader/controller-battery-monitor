@@ -28,33 +28,6 @@ public static class UPowerExceptionHelpers
     }
     
     /// <summary>
-    /// Determines if an exception indicates UPower is unavailable
-    /// </summary>
-    public static bool IsUPowerUnavailable(Exception exception)
-    {
-        return exception is UPowerDaemonUnavailableException ||
-               exception is UPowerLibraryLoadException ||
-               exception is DllNotFoundException ||
-               (exception is UPowerDBusException dbusEx && 
-                dbusEx.Message.Contains("service not available", StringComparison.OrdinalIgnoreCase));
-    }
-    
-    /// <summary>
-    /// Determines if an exception is recoverable
-    /// </summary>
-    public static bool IsRecoverableException(Exception exception)
-    {
-        return exception switch
-        {
-            UPowerTimeoutException => true,
-            UPowerDeviceException => true,
-            UPowerInteropException interopEx when !interopEx.Message.Contains("library", StringComparison.OrdinalIgnoreCase) => true,
-            UPowerDBusException dbusEx when !dbusEx.Message.Contains("service not available", StringComparison.OrdinalIgnoreCase) => true,
-            _ => false
-        };
-    }
-    
-    /// <summary>
     /// Gets user-friendly error message for an exception
     /// </summary>
     public static string GetUserFriendlyMessage(Exception exception)
@@ -67,8 +40,6 @@ public static class UPowerExceptionHelpers
                 "Could not load UPower library. Please ensure libupower-glib is installed.",
             UPowerPermissionException =>
                 "Insufficient permissions to access battery information. You may need to run with elevated privileges or configure PolicyKit.",
-            UPowerDBusException =>
-                "Communication error with system services. Please check D-Bus is running.",
             UPowerTimeoutException =>
                 "Battery information request timed out. The system may be under heavy load.",
             _ => "Unknown error"
