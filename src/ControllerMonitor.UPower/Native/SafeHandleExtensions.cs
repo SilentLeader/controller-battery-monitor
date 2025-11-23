@@ -18,16 +18,4 @@ internal static class SafeHandleExtensions
             
         return function(safeHandle.DangerousGetHandle());
     }
-    
-    /// <summary>
-    /// Executes an action with the native handle, throwing if the handle is invalid
-    /// </summary>
-    public static void UseHandle<THandle>(this THandle safeHandle, Action<IntPtr> action) 
-        where THandle : SafeHandleZeroOrMinusOneIsInvalid
-    {
-        if (safeHandle.IsInvalid)
-            throw new SafeHandleException($"Cannot use invalid {typeof(THandle).Name}");
-            
-        action(safeHandle.DangerousGetHandle());
-    }
 }

@@ -8,21 +8,6 @@ namespace ControllerMonitor.UPower.Services;
 public interface IBatteryDataProvider
 {
     /// <summary>
-    /// Unique name of this provider
-    /// </summary>
-    string ProviderName { get; }
-    
-    /// <summary>
-    /// Priority of this provider (lower values = higher priority)
-    /// </summary>
-    int Priority { get; }
-    
-    /// <summary>
-    /// Whether this provider is currently healthy and available
-    /// </summary>
-    bool IsHealthy { get; }
-    
-    /// <summary>
     /// Checks if the provider is available on this system
     /// </summary>
     Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default);

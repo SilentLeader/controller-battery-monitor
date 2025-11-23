@@ -93,7 +93,7 @@ public class XInputService : IXInputService
             var controllerInfo = new ControllerBatteryInfo
             {
                 ControllerIndex = controllerIndex,
-                IsConnected = result == 0 // ERROR_SUCCESS
+                IsConnected = result == 0
             };
 
             if (!controllerInfo.IsConnected)
@@ -105,7 +105,7 @@ public class XInputService : IXInputService
             var batteryInfo = new XInputBatteryInformation();
             uint batteryResult = XInputGetBatteryInformation(controllerIndex, BatteryDeviceType.BATTERY_DEVTYPE_GAMEPAD, ref batteryInfo);
 
-            if (batteryResult == 0) // ERROR_SUCCESS
+            if (batteryResult == 0)
             {
                 controllerInfo.BatteryType = batteryInfo.BatteryType;
                 controllerInfo.BatteryLevel = batteryInfo.BatteryLevel;

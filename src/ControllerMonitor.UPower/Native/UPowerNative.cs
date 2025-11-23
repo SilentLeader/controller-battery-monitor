@@ -25,19 +25,6 @@ internal static class UPowerNative
     [DllImport(LibUPower, CallingConvention = CallingConvention.Cdecl)]
     internal static extern IntPtr up_client_get_devices(IntPtr client);
     
-    /// <summary>
-    /// Sets whether the laptop lid is closed
-    /// </summary>
-    [DllImport(LibUPower, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern void up_client_set_lid_is_closed(IntPtr client, [MarshalAs(UnmanagedType.Bool)] bool is_closed);
-    
-    /// <summary>
-    /// Gets whether the system is on battery power
-    /// </summary>
-    [DllImport(LibUPower, CallingConvention = CallingConvention.Cdecl)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    internal static extern bool up_client_get_on_battery(IntPtr client);
-    
     #endregion
     
     #region Device Property Functions
@@ -334,29 +321,6 @@ internal static class UPowerNative
     }
     
     /// <summary>
-    /// Helper method to safely get an int property from a GObject
-    /// </summary>
-    internal static int GetObjectIntProperty(IntPtr obj, string propertyName)
-    {
-        IntPtr valuePtr = AllocateZeroedGValue();
-        if (valuePtr == IntPtr.Zero)
-            return 0;
-            
-        try
-        {
-            g_value_init(valuePtr, GType.Int);
-            g_object_get_property(obj, propertyName, valuePtr);
-            
-            return g_value_get_int(valuePtr);
-        }
-        finally
-        {
-            g_value_unset(valuePtr);
-            g_free(valuePtr);
-        }
-    }
-    
-    /// <summary>
     /// Helper method to safely get a uint property from a GObject
     /// </summary>
     internal static uint GetObjectUIntProperty(IntPtr obj, string propertyName)
@@ -378,30 +342,7 @@ internal static class UPowerNative
             g_free(valuePtr);
         }
     }
-    
-    /// <summary>
-    /// Helper method to safely get an int64 property from a GObject
-    /// </summary>
-    internal static long GetObjectInt64Property(IntPtr obj, string propertyName)
-    {
-        IntPtr valuePtr = AllocateZeroedGValue();
-        if (valuePtr == IntPtr.Zero)
-            return 0L;
-            
-        try
-        {
-            g_value_init(valuePtr, GType.Int64);
-            g_object_get_property(obj, propertyName, valuePtr);
-            
-            return g_value_get_int64(valuePtr);
-        }
-        finally
-        {
-            g_value_unset(valuePtr);
-            g_free(valuePtr);
-        }
-    }
-    
+        
     /// <summary>
     /// Helper method to safely get a boolean property from a GObject
     /// </summary>

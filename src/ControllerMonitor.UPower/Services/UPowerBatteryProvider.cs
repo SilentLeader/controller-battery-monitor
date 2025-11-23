@@ -13,10 +13,7 @@ public sealed class UPowerBatteryProvider(
     private readonly ILogger<UPowerBatteryProvider> _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     private readonly UPowerClient _client = client ?? throw new ArgumentNullException(nameof(client));
     
-    public string ProviderName => "UPower";
-    public int Priority => 1; // Higher priority than sysfs fallback
-    public bool IsHealthy { get; private set; } = true;
-
+    
     /// <summary>
     /// Checks if UPower is available on this system
     /// </summary>
@@ -30,7 +27,6 @@ public sealed class UPowerBatteryProvider(
         catch (Exception ex)
         {
             _logger.LogDebug(ex, "UPower availability check failed");
-            IsHealthy = false;
             return false;
         }
     }

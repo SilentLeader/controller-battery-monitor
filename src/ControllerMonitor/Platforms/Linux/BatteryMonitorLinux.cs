@@ -286,12 +286,12 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             if (!File.Exists(ueventPath))
                 continue;
 
-            var lines = File.ReadAllLines(ueventPath);
-            foreach (var line in lines)
+            var lines = File.ReadAllText(ueventPath);
+            foreach (var line in lines.AsSpan().EnumerateLines())
             {
                 if (line.StartsWith(PowerSupplyModelName))
                 {
-                    var model = line.Substring(PowerSupplyModelName.Length);
+                    var model = line[PowerSupplyModelName.Length..].ToString();
                     if (model.Contains("controller", StringComparison.CurrentCultureIgnoreCase))
                     {
                         return (devicePath, model);

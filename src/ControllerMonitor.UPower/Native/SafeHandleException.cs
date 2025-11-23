@@ -6,5 +6,4 @@ namespace ControllerMonitor.UPower.Native;
 public class SafeHandleException : Exception
 {
     public SafeHandleException(string message) : base(message) { }
-    public SafeHandleException(string message, Exception innerException) : base(message, innerException) { }
 }
