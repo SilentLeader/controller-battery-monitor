@@ -30,6 +30,7 @@ public partial class SettingsViewModel : ObservableObject
         NotifyOnControllerDisconnected = _data.NotifyOnControllerDisconnected;
         NotifyOnBatteryLow = _data.NotifyOnBatteryLow;
         Theme = _data.Theme;
+        Language = _data.Language ?? "Auto";
     }
 
     [ObservableProperty]
@@ -68,6 +69,9 @@ public partial class SettingsViewModel : ObservableObject
     [ObservableProperty]
     private string theme;
 
+    [ObservableProperty]
+    private string language = "Auto";
+
     // Method to convert back to SettingsData for serialization
     public Settings ToSettingsData()
     {
@@ -84,7 +88,8 @@ public partial class SettingsViewModel : ObservableObject
             NotifyOnControllerConnected = NotifyOnControllerConnected,
             NotifyOnControllerDisconnected = NotifyOnControllerDisconnected,
             NotifyOnBatteryLow = NotifyOnBatteryLow,
-            Theme = Theme
+            Theme = Theme,
+            Language = Language
         };
     }
 }

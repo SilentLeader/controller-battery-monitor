@@ -4,12 +4,13 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:vm="clr-namespace:ControllerMonitor.ViewModels"
         xmlns:vo="clr-namespace:ControllerMonitor.ValueObjects"
+        xmlns:ext="clr-namespace:ControllerMonitor.Extensions"
         mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
         x:Class="ControllerMonitor.Windows.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="Controller Monitor"
         MinWidth="640"
-        MinHeight="440"
+        MinHeight="540"
         >
     <Window.Icon>
         <MultiBinding Converter="{StaticResource BatteryLevelToIconConverter}">
@@ -19,62 +20,70 @@
         </MultiBinding>
     </Window.Icon>
     <TabControl Margin="20">
-        <TabItem Header="Battery Info">
+        <TabItem Header="{ext:Localize Tab_BatteryInfo}">
             <StackPanel>
                 <TextBlock Text="{Binding ControllerInfo.Name}" FontSize="18" FontWeight="Bold" />
-                <TextBlock Text="Battery Level:" Margin="0,10,0,0" />
+                <TextBlock Text="{ext:Localize BatteryLevel}" Margin="0,10,0,0" />
                 <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Level}" FontSize="16" />
                 <StackPanel IsVisible="{Binding ControllerInfo.BatteryInfo.Capacity, Converter={StaticResource CapacityToVisibilityConverter}}">
-                    <TextBlock Text="Capacity:" Margin="0,10,0,0" />
+                    <TextBlock Text="{ext:Localize Capacity}" Margin="0,10,0,0" />
                     <StackPanel Orientation="Horizontal">
                         <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Capacity}" FontSize="16" />
                         <TextBlock Text=" %" FontSize="16" />
                     </StackPanel>
                 </StackPanel>
-                <TextBlock Text="Status:" Margin="0,10,0,0" />
+                <TextBlock Text="{ext:Localize Status}" Margin="0,10,0,0" />
                 <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Status}" FontSize="16" />
             </StackPanel>
         </TabItem>
-        <TabItem Header="Settings">
+        <TabItem Header="{ext:Localize Tab_Settings}">
             <StackPanel>
-                <CheckBox Content="Start minimized on startup" IsChecked="{Binding Settings.StartMinimized}" Margin="0,10,0,0" />
-                <CheckBox Content="Minimize to tray" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,10,0,0" />
+                <CheckBox Content="{ext:Localize Settings_StartMinimized}" IsChecked="{Binding Settings.StartMinimized}" Margin="0,10,0,0" />
+                <CheckBox Content="{ext:Localize Settings_MinimizeToTray}" IsChecked="{Binding Settings.MinimizeToTray}" Margin="0,10,0,0" />
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                    <TextBlock Text="Update frequency (seconds):" VerticalAlignment="Center" />
+                    <TextBlock Text="{ext:Localize Settings_UpdateFrequency}" VerticalAlignment="Center" />
                     <NumericUpDown Value="{Binding Settings.UpdateFrequencySeconds}" Minimum="1" Maximum="60" Width="100" Margin="10,0,0,0" />
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                    <TextBlock Text="Theme:" VerticalAlignment="Center" />
+                    <TextBlock Text="{ext:Localize Settings_Theme}" VerticalAlignment="Center" />
                     <ComboBox SelectedItem="{Binding Settings.Theme}" Width="120" Margin="10,0,0,0">
                         <x:String>Auto</x:String>
                         <x:String>Light</x:String>
                         <x:String>Dark</x:String>
                     </ComboBox>
                 </StackPanel>
-                <CheckBox Content="Hide tray icon when controller disconnected" 
-                         IsChecked="{Binding Settings.HideTrayIconWhenDisconnected}" 
+                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                    <TextBlock Text="{ext:Localize Settings_Language}" VerticalAlignment="Center" />
+                    <ComboBox SelectedItem="{Binding Settings.Language}" Width="180" Margin="10,0,0,0">
+                        <x:String>Auto</x:String>
+                        <x:String>English</x:String>
+                        <x:String>Magyar (Hungarian)</x:String>
+                    </ComboBox>
+                </StackPanel>
+                <CheckBox Content="{ext:Localize Settings_HideTrayIcon}"
+                         IsChecked="{Binding Settings.HideTrayIconWhenDisconnected}"
                          IsEnabled="{Binding !IsLinux}"
                          Margin="0,10,0,0" />
-                <TextBlock Text="Note: This feature is disabled on Linux due to platform limitations." 
-                          FontSize="11" 
+                <TextBlock Text="{ext:Localize Settings_HideTrayIconNote}"
+                          FontSize="11"
                           Foreground="{DynamicResource SystemControlForegroundBaseMediumBrush}"
                           IsVisible="{Binding IsLinux}"
                           Margin="20,5,0,0" />
-                <Border BorderThickness="1" CornerRadius="3" BorderBrush="{DynamicResource SystemControlForegroundBaseHighBrush}" Padding="10">
+                <Border BorderThickness="1" CornerRadius="3" BorderBrush="{DynamicResource SystemControlForegroundBaseHighBrush}" Padding="10" Margin="0,10,0,0">
                     <StackPanel>
-                        <TextBlock>Notifications</TextBlock>
-                        <CheckBox Content="Show notification when controller connected" IsChecked="{Binding Settings.NotifyOnControllerConnected}" Margin="0,10,0,0" />
-                        <CheckBox Content="Show notification when controller disconnected" IsChecked="{Binding Settings.NotifyOnControllerDisconnected}" Margin="0,10,0,0" />
-                        <CheckBox Content="Show notification when battery is low" IsChecked="{Binding Settings.NotifyOnBatteryLow}" Margin="0,10,0,0" />
+                        <TextBlock Text="{ext:Localize Settings_Notifications}" />
+                        <CheckBox Content="{ext:Localize Settings_NotifyConnected}" IsChecked="{Binding Settings.NotifyOnControllerConnected}" Margin="0,10,0,0" />
+                        <CheckBox Content="{ext:Localize Settings_NotifyDisconnected}" IsChecked="{Binding Settings.NotifyOnControllerDisconnected}" Margin="0,10,0,0" />
+                        <CheckBox Content="{ext:Localize Settings_NotifyLowBattery}" IsChecked="{Binding Settings.NotifyOnBatteryLow}" Margin="0,10,0,0" />
                     </StackPanel>
                 </Border>
             </StackPanel>
         </TabItem>
-        <TabItem Header="About">
+        <TabItem Header="{ext:Localize Tab_About}">
             <StackPanel>
                 <TextBlock Text="{Binding AppName}" FontSize="18" FontWeight="Bold" />
                 <TextBlock Text="{Binding AppDescription}" Margin="0,10,0,0" />
-                <TextBlock Text="Version:" Margin="0,10,0,0" />
+                <TextBlock Text="{ext:Localize About_Version}" Margin="0,10,0,0" />
                 <TextBlock Text="{Binding AppVersion}" FontSize="16" />
             </StackPanel>
         </TabItem>

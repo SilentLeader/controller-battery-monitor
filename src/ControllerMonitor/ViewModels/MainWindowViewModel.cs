@@ -9,6 +9,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ControllerMonitor.Interfaces;
+using ControllerMonitor.Services;
 using ControllerMonitor.ValueObjects;
 using Microsoft.Extensions.Logging;
 
@@ -70,10 +71,13 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             themeVariant = Application.Current.ActualThemeVariant;
             Application.Current.ActualThemeVariantChanged += OnThemeVariantChanged;
-            
+
             // Apply initial theme setting
             ApplyThemeSetting(Settings.Theme);
         }
+
+        // Apply initial language setting
+        ApplyLanguageSetting(Settings.Language);
 
         _debounceTimer = new Timer(500)
         {
@@ -118,6 +122,11 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             // Apply theme change immediately
             ApplyThemeSetting(Settings.Theme);
+        }
+        else if (e.PropertyName == nameof(Settings.Language))
+        {
+            // Apply language change immediately
+            ApplyLanguageSetting(Settings.Language);
         }
         // Debounced auto-save settings on change
         _debounceTimer.Stop();
@@ -194,6 +203,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         };
 
         Application.Current.RequestedThemeVariant = themeVariant;
+    }
+
+    private void ApplyLanguageSetting(string language)
+    {
+        var languageCode = LocalizationService.GetLanguageCodeFromSetting(language);
+        LocalizationService.Instance.SetLanguage(languageCode);
     }
                 
     protected virtual void Dispose(bool disposing)

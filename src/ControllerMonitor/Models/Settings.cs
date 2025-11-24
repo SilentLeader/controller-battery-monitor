@@ -40,6 +40,9 @@ public class Settings
     [JsonPropertyName("theme")]
     public string Theme { get; set; } = "Auto";
 
+    [JsonPropertyName("language")]
+    public string? Language { get; set; } = "Auto";
+
     public Settings ShallowCopy()
     {
         return (Settings)MemberwiseClone();

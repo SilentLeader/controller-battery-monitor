@@ -12,6 +12,7 @@
         <converters:BatteryInfoToTooltipConverter x:Key="BatteryInfoToTooltipConverter" />
         <converters:TrayIconVisibilityConverter x:Key="TrayIconVisibilityConverter" />
         <converters:CapacityToVisibilityConverter x:Key="CapacityToVisibilityConverter" />
+        <converters:LocalizeConverter x:Key="LocalizeConverter" />
     </Application.Resources>
 
     <Application.Styles>
