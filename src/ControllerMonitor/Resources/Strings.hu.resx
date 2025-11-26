@@ -149,4 +149,57 @@
   <data name="Tray_Exit" xml:space="preserve">
     <value>Kilépés</value>
   </data>
+
+  <!-- App Info -->
+  <data name="App_Name" xml:space="preserve">
+    <value>Controller Monitor</value>
+  </data>
+  <data name="App_Description" xml:space="preserve">
+    <value>Egyszerű alkalmazás játékvezérlők akkumulátor szintjének figyelésére.</value>
+  </data>
+
+  <!-- Connection Status -->
+  <data name="ConnectionStatus_Disconnected" xml:space="preserve">
+    <value>Leválasztva</value>
+  </data>
+  <data name="ConnectionStatus_Connected" xml:space="preserve">
+    <value>Csatlakoztatva</value>
+  </data>
+  <data name="ConnectionStatus_Charging" xml:space="preserve">
+    <value>Töltés alatt</value>
+  </data>
+  <data name="ConnectionStatus_Unknown" xml:space="preserve">
+    <value>Ismeretlen</value>
+  </data>
+
+  <!-- Battery Level -->
+  <data name="BatteryLevel_Unknown" xml:space="preserve">
+    <value>Ismeretlen</value>
+  </data>
+  <data name="BatteryLevel_Empty" xml:space="preserve">
+    <value>Üres</value>
+  </data>
+  <data name="BatteryLevel_Low" xml:space="preserve">
+    <value>Alacsony</value>
+  </data>
+  <data name="BatteryLevel_Normal" xml:space="preserve">
+    <value>Normál</value>
+  </data>
+  <data name="BatteryLevel_High" xml:space="preserve">
+    <value>Magas</value>
+  </data>
+  <data name="BatteryLevel_Full" xml:space="preserve">
+    <value>Tele</value>
+  </data>
+
+  <!-- Controller -->
+  <data name="Controller_Unknown" xml:space="preserve">
+    <value>Ismeretlen Vezérlő</value>
+  </data>
+  <data name="Controller_Disconnected" xml:space="preserve">
+    <value>Vezérlő leválasztva</value>
+  </data>
+  <data name="Controller_TooltipFormat" xml:space="preserve">
+    <value>{0} - Töltöttség: {1} - Állapot: {2}</value>
+  </data>
 </root>

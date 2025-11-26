@@ -13,6 +13,8 @@
         <converters:TrayIconVisibilityConverter x:Key="TrayIconVisibilityConverter" />
         <converters:CapacityToVisibilityConverter x:Key="CapacityToVisibilityConverter" />
         <converters:LocalizeConverter x:Key="LocalizeConverter" />
+        <converters:ConnectionStatusToLocalizedStringConverter x:Key="ConnectionStatusToLocalizedStringConverter" />
+        <converters:BatteryLevelToLocalizedStringConverter x:Key="BatteryLevelToLocalizedStringConverter" />
     </Application.Resources>
 
     <Application.Styles>

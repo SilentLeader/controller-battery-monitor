@@ -33,10 +33,10 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private SettingsViewModel settings;
 
     [ObservableProperty]
-    private string appName = "Controller Monitor";
+    private string appName;
 
     [ObservableProperty]
-    private string appDescription = "A simple application to monitor game controller battery levels.";
+    private string appDescription;
 
     [ObservableProperty]
     private string appVersion;
@@ -65,6 +65,20 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         Settings = settings;
         Settings.PropertyChanged += Settings_PropertyChanged;
         AppVersion = Assembly.GetExecutingAssembly().GetName().Version?.ToString() ?? "0.0.0.0";
+
+        // Initialize localized app info
+        AppName = LocalizationService.Instance["App_Name"];
+        AppDescription = LocalizationService.Instance["App_Description"];
+
+        // Subscribe to culture changes to update app info
+        LocalizationService.Instance.PropertyChanged += (s, e) =>
+        {
+            if (e.PropertyName == nameof(LocalizationService.CurrentCulture))
+            {
+                AppName = LocalizationService.Instance["App_Name"];
+                AppDescription = LocalizationService.Instance["App_Description"];
+            }
+        };
 
         // Initialize theme variant
         if (Application.Current != null)
@@ -250,10 +264,10 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private static string GetControllerDisplayName(BatteryInfoViewModel batteryInfo)
     {
         if (batteryInfo?.IsConnected != true)
-            return "Unknown Controller";
-            
+            return LocalizationService.Instance["Controller_Unknown"];
+
         return !string.IsNullOrWhiteSpace(batteryInfo.ModelName)
             ? batteryInfo.ModelName
-            : "Unknown Controller";
+            : LocalizationService.Instance["Controller_Unknown"];
     }
 }

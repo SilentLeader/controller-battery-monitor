@@ -149,4 +149,57 @@
   <data name="Tray_Exit" xml:space="preserve">
     <value>Exit</value>
   </data>
+
+  <!-- App Info -->
+  <data name="App_Name" xml:space="preserve">
+    <value>Controller Monitor</value>
+  </data>
+  <data name="App_Description" xml:space="preserve">
+    <value>A simple application to monitor game controller battery levels.</value>
+  </data>
+
+  <!-- Connection Status -->
+  <data name="ConnectionStatus_Disconnected" xml:space="preserve">
+    <value>Disconnected</value>
+  </data>
+  <data name="ConnectionStatus_Connected" xml:space="preserve">
+    <value>Connected</value>
+  </data>
+  <data name="ConnectionStatus_Charging" xml:space="preserve">
+    <value>Charging</value>
+  </data>
+  <data name="ConnectionStatus_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+
+  <!-- Battery Level -->
+  <data name="BatteryLevel_Unknown" xml:space="preserve">
+    <value>Unknown</value>
+  </data>
+  <data name="BatteryLevel_Empty" xml:space="preserve">
+    <value>Empty</value>
+  </data>
+  <data name="BatteryLevel_Low" xml:space="preserve">
+    <value>Low</value>
+  </data>
+  <data name="BatteryLevel_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="BatteryLevel_High" xml:space="preserve">
+    <value>High</value>
+  </data>
+  <data name="BatteryLevel_Full" xml:space="preserve">
+    <value>Full</value>
+  </data>
+
+  <!-- Controller -->
+  <data name="Controller_Unknown" xml:space="preserve">
+    <value>Unknown Controller</value>
+  </data>
+  <data name="Controller_Disconnected" xml:space="preserve">
+    <value>Controller disconnected</value>
+  </data>
+  <data name="Controller_TooltipFormat" xml:space="preserve">
+    <value>{0} - Battery: {1} - Status: {2}</value>
+  </data>
 </root>
