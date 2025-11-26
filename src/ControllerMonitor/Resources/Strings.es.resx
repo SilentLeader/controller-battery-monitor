@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <!-- Tab Headers -->
+  <data name="Tab_BatteryInfo" xml:space="preserve">
+    <value>Info de Batería</value>
+  </data>
+  <data name="Tab_Settings" xml:space="preserve">
+    <value>Configuración</value>
+  </data>
+  <data name="Tab_About" xml:space="preserve">
+    <value>Acerca de</value>
+  </data>
+
+  <!-- Battery Info Tab -->
+  <data name="BatteryLevel" xml:space="preserve">
+    <value>Nivel de Batería:</value>
+  </data>
+  <data name="Capacity" xml:space="preserve">
+    <value>Capacidad:</value>
+  </data>
+  <data name="Status" xml:space="preserve">
+    <value>Estado:</value>
+  </data>
+
+  <!-- Settings Tab -->
+  <data name="Settings_StartMinimized" xml:space="preserve">
+    <value>Iniciar minimizado al arranque</value>
+  </data>
+  <data name="Settings_MinimizeToTray" xml:space="preserve">
+    <value>Minimizar a la bandeja</value>
+  </data>
+  <data name="Settings_UpdateFrequency" xml:space="preserve">
+    <value>Frecuencia de actualización (segundos):</value>
+  </data>
+  <data name="Settings_Theme" xml:space="preserve">
+    <value>Tema:</value>
+  </data>
+  <data name="Settings_Language" xml:space="preserve">
+    <value>Idioma:</value>
+  </data>
+  <data name="Settings_HideTrayIcon" xml:space="preserve">
+    <value>Ocultar icono de bandeja cuando el controlador esté desconectado</value>
+  </data>
+  <data name="Settings_HideTrayIconNote" xml:space="preserve">
+    <value>Nota: Esta función está deshabilitada en Linux debido a limitaciones de la plataforma.</value>
+  </data>
+  <data name="Settings_Notifications" xml:space="preserve">
+    <value>Notificaciones</value>
+  </data>
+  <data name="Settings_NotifyConnected" xml:space="preserve">
+    <value>Mostrar notificación cuando el controlador se conecte</value>
+  </data>
+  <data name="Settings_NotifyDisconnected" xml:space="preserve">
+    <value>Mostrar notificación cuando el controlador se desconecte</value>
+  </data>
+  <data name="Settings_NotifyLowBattery" xml:space="preserve">
+    <value>Mostrar notificación cuando la batería esté baja</value>
+  </data>
+
+  <!-- Language Options -->
+  <data name="Language_Auto" xml:space="preserve">
+    <value>Automático</value>
+  </data>
+  <data name="Language_English" xml:space="preserve">
+    <value>English (Inglés)</value>
+  </data>
+  <data name="Language_Hungarian" xml:space="preserve">
+    <value>Magyar (Húngaro)</value>
+  </data>
+
+  <!-- Theme Options -->
+  <data name="Theme_Auto" xml:space="preserve">
+    <value>Automático</value>
+  </data>
+  <data name="Theme_Light" xml:space="preserve">
+    <value>Claro</value>
+  </data>
+  <data name="Theme_Dark" xml:space="preserve">
+    <value>Oscuro</value>
+  </data>
+
+  <!-- About Tab -->
+  <data name="About_Version" xml:space="preserve">
+    <value>Versión:</value>
+  </data>
+
+  <!-- Tray Menu -->
+  <data name="Tray_OpenMainWindow" xml:space="preserve">
+    <value>Abrir Ventana Principal</value>
+  </data>
+  <data name="Tray_Exit" xml:space="preserve">
+    <value>Salir</value>
+  </data>
+
+  <!-- App Info -->
+  <data name="App_Name" xml:space="preserve">
+    <value>Controller Monitor</value>
+  </data>
+  <data name="App_Description" xml:space="preserve">
+    <value>Una aplicación simple para monitorear los niveles de batería de controladores de juegos.</value>
+  </data>
+
+  <!-- Connection Status -->
+  <data name="ConnectionStatus_Disconnected" xml:space="preserve">
+    <value>Desconectado</value>
+  </data>
+  <data name="ConnectionStatus_Connected" xml:space="preserve">
+    <value>Conectado</value>
+  </data>
+  <data name="ConnectionStatus_Charging" xml:space="preserve">
+    <value>Cargando</value>
+  </data>
+  <data name="ConnectionStatus_Unknown" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
+
+  <!-- Battery Level -->
+  <data name="BatteryLevel_Unknown" xml:space="preserve">
+    <value>Desconocido</value>
+  </data>
+  <data name="BatteryLevel_Empty" xml:space="preserve">
+    <value>Vacía</value>
+  </data>
+  <data name="BatteryLevel_Low" xml:space="preserve">
+    <value>Baja</value>
+  </data>
+  <data name="BatteryLevel_Normal" xml:space="preserve">
+    <value>Normal</value>
+  </data>
+  <data name="BatteryLevel_High" xml:space="preserve">
+    <value>Alta</value>
+  </data>
+  <data name="BatteryLevel_Full" xml:space="preserve">
+    <value>Llena</value>
+  </data>
+
+  <!-- Controller -->
+  <data name="Controller_Unknown" xml:space="preserve">
+    <value>Controlador Desconocido</value>
+  </data>
+  <data name="Controller_Disconnected" xml:space="preserve">
+    <value>Controlador desconectado</value>
+  </data>
+  <data name="Controller_TooltipFormat" xml:space="preserve">
+    <value>{0} - Batería: {1} - Estado: {2}</value>
+  </data>
+</root>
