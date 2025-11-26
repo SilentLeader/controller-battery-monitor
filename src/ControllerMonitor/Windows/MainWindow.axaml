@@ -54,10 +54,14 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
                     <TextBlock Text="{ext:Localize Settings_Language}" VerticalAlignment="Center" />
-                    <ComboBox SelectedItem="{Binding Settings.Language}" Width="180" Margin="10,0,0,0">
+                    <ComboBox SelectedItem="{Binding Settings.Language}" Width="200" Margin="10,0,0,0">
                         <x:String>Auto</x:String>
                         <x:String>English</x:String>
+                        <x:String>Español (Spanish)</x:String>
+                        <x:String>Deutsch (German)</x:String>
+                        <x:String>Français (French)</x:String>
                         <x:String>Magyar (Hungarian)</x:String>
+                        <x:String>Português (Portuguese)</x:String>
                     </ComboBox>
                 </StackPanel>
                 <CheckBox Content="{ext:Localize Settings_HideTrayIcon}"

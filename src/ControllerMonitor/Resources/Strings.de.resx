@@ -60,21 +60,21 @@
   </resheader>
   <!-- Tab Headers -->
   <data name="Tab_BatteryInfo" xml:space="preserve">
-    <value>Battery Info</value>
+    <value>Batterie-Info</value>
   </data>
   <data name="Tab_Settings" xml:space="preserve">
-    <value>Settings</value>
+    <value>Einstellungen</value>
   </data>
   <data name="Tab_About" xml:space="preserve">
-    <value>About</value>
+    <value>Über</value>
   </data>
 
   <!-- Battery Info Tab -->
   <data name="BatteryLevel" xml:space="preserve">
-    <value>Battery Level:</value>
+    <value>Batteriestand:</value>
   </data>
   <data name="Capacity" xml:space="preserve">
-    <value>Capacity:</value>
+    <value>Kapazität:</value>
   </data>
   <data name="Status" xml:space="preserve">
     <value>Status:</value>
@@ -82,71 +82,59 @@
 
   <!-- Settings Tab -->
   <data name="Settings_StartMinimized" xml:space="preserve">
-    <value>Start minimized on startup</value>
+    <value>Minimiert beim Start starten</value>
   </data>
   <data name="Settings_MinimizeToTray" xml:space="preserve">
-    <value>Minimize to tray</value>
+    <value>In Taskleiste minimieren</value>
   </data>
   <data name="Settings_UpdateFrequency" xml:space="preserve">
-    <value>Update frequency (seconds):</value>
+    <value>Aktualisierungsfrequenz (Sekunden):</value>
   </data>
   <data name="Settings_Theme" xml:space="preserve">
-    <value>Theme:</value>
+    <value>Design:</value>
   </data>
   <data name="Settings_Language" xml:space="preserve">
-    <value>Language:</value>
+    <value>Sprache:</value>
   </data>
   <data name="Settings_HideTrayIcon" xml:space="preserve">
-    <value>Hide tray icon when controller disconnected</value>
+    <value>Taskleistensymbol ausblenden, wenn Controller getrennt ist</value>
   </data>
   <data name="Settings_HideTrayIconNote" xml:space="preserve">
-    <value>Note: This feature is disabled on Linux due to platform limitations.</value>
+    <value>Hinweis: Diese Funktion ist unter Linux aufgrund von Plattformbeschränkungen deaktiviert.</value>
   </data>
   <data name="Settings_Notifications" xml:space="preserve">
-    <value>Notifications</value>
+    <value>Benachrichtigungen</value>
   </data>
   <data name="Settings_NotifyConnected" xml:space="preserve">
-    <value>Show notification when controller connected</value>
+    <value>Benachrichtigung anzeigen, wenn Controller verbunden wird</value>
   </data>
   <data name="Settings_NotifyDisconnected" xml:space="preserve">
-    <value>Show notification when controller disconnected</value>
+    <value>Benachrichtigung anzeigen, wenn Controller getrennt wird</value>
   </data>
   <data name="Settings_NotifyLowBattery" xml:space="preserve">
-    <value>Show notification when battery is low</value>
+    <value>Benachrichtigung anzeigen, wenn Batterie schwach ist</value>
   </data>
 
   <!-- Language Options -->
   <data name="Language_Auto" xml:space="preserve">
-    <value>Auto</value>
+    <value>Automatisch</value>
   </data>
   <data name="Language_English" xml:space="preserve">
-    <value>English</value>
-  </data>
-  <data name="Language_Spanish" xml:space="preserve">
-    <value>Español (Spanish)</value>
-  </data>
-  <data name="Language_German" xml:space="preserve">
-    <value>Deutsch (German)</value>
-  </data>
-  <data name="Language_French" xml:space="preserve">
-    <value>Français (French)</value>
+    <value>English (Englisch)</value>
   </data>
   <data name="Language_Hungarian" xml:space="preserve">
-    <value>Magyar (Hungarian)</value>
-  </data>
-  <data name="Language_Portuguese" xml:space="preserve">
-    <value>Português (Portuguese)</value>
+    <value>Magyar (Ungarisch)</value>
   </data>
 
   <!-- Theme Options -->
   <data name="Theme_Auto" xml:space="preserve">
-    <value>Auto</value>
+    <value>Automatisch</value>
   </data>
   <data name="Theme_Light" xml:space="preserve">
-    <value>Light</value>
+    <value>Hell</value>
   </data>
   <data name="Theme_Dark" xml:space="preserve">
-    <value>Dark</value>
+    <value>Dunkel</value>
   </data>
 
   <!-- About Tab -->
@@ -156,10 +144,10 @@
 
   <!-- Tray Menu -->
   <data name="Tray_OpenMainWindow" xml:space="preserve">
-    <value>Open Main Window</value>
+    <value>Hauptfenster öffnen</value>
   </data>
   <data name="Tray_Exit" xml:space="preserve">
-    <value>Exit</value>
+    <value>Beenden</value>
   </data>
 
   <!-- App Info -->
@@ -167,51 +155,51 @@
     <value>Controller Monitor</value>
   </data>
   <data name="App_Description" xml:space="preserve">
-    <value>A simple application to monitor game controller battery levels.</value>
+    <value>Eine einfache Anwendung zur Überwachung des Batteriestands von Spiele-Controllern.</value>
   </data>
 
   <!-- Connection Status -->
   <data name="ConnectionStatus_Disconnected" xml:space="preserve">
-    <value>Disconnected</value>
+    <value>Getrennt</value>
   </data>
   <data name="ConnectionStatus_Connected" xml:space="preserve">
-    <value>Connected</value>
+    <value>Verbunden</value>
   </data>
   <data name="ConnectionStatus_Charging" xml:space="preserve">
-    <value>Charging</value>
+    <value>Lädt</value>
   </data>
   <data name="ConnectionStatus_Unknown" xml:space="preserve">
-    <value>Unknown</value>
+    <value>Unbekannt</value>
   </data>
 
   <!-- Battery Level -->
   <data name="BatteryLevel_Unknown" xml:space="preserve">
-    <value>Unknown</value>
+    <value>Unbekannt</value>
   </data>
   <data name="BatteryLevel_Empty" xml:space="preserve">
-    <value>Empty</value>
+    <value>Leer</value>
   </data>
   <data name="BatteryLevel_Low" xml:space="preserve">
-    <value>Low</value>
+    <value>Niedrig</value>
   </data>
   <data name="BatteryLevel_Normal" xml:space="preserve">
     <value>Normal</value>
   </data>
   <data name="BatteryLevel_High" xml:space="preserve">
-    <value>High</value>
+    <value>Hoch</value>
   </data>
   <data name="BatteryLevel_Full" xml:space="preserve">
-    <value>Full</value>
+    <value>Voll</value>
   </data>
 
   <!-- Controller -->
   <data name="Controller_Unknown" xml:space="preserve">
-    <value>Unknown Controller</value>
+    <value>Unbekannter Controller</value>
   </data>
   <data name="Controller_Disconnected" xml:space="preserve">
-    <value>Controller disconnected</value>
+    <value>Controller getrennt</value>
   </data>
   <data name="Controller_TooltipFormat" xml:space="preserve">
-    <value>{0} - Battery: {1} - Status: {2}</value>
+    <value>{0} - Batterie: {1} - Status: {2}</value>
   </data>
 </root>

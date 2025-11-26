@@ -60,93 +60,81 @@
   </resheader>
   <!-- Tab Headers -->
   <data name="Tab_BatteryInfo" xml:space="preserve">
-    <value>Battery Info</value>
+    <value>Info Batterie</value>
   </data>
   <data name="Tab_Settings" xml:space="preserve">
-    <value>Settings</value>
+    <value>Paramètres</value>
   </data>
   <data name="Tab_About" xml:space="preserve">
-    <value>About</value>
+    <value>À propos</value>
   </data>
 
   <!-- Battery Info Tab -->
   <data name="BatteryLevel" xml:space="preserve">
-    <value>Battery Level:</value>
+    <value>Niveau de Batterie:</value>
   </data>
   <data name="Capacity" xml:space="preserve">
-    <value>Capacity:</value>
+    <value>Capacité:</value>
   </data>
   <data name="Status" xml:space="preserve">
-    <value>Status:</value>
+    <value>État:</value>
   </data>
 
   <!-- Settings Tab -->
   <data name="Settings_StartMinimized" xml:space="preserve">
-    <value>Start minimized on startup</value>
+    <value>Démarrer en mode réduit</value>
   </data>
   <data name="Settings_MinimizeToTray" xml:space="preserve">
-    <value>Minimize to tray</value>
+    <value>Réduire dans la barre d'état</value>
   </data>
   <data name="Settings_UpdateFrequency" xml:space="preserve">
-    <value>Update frequency (seconds):</value>
+    <value>Fréquence de mise à jour (secondes):</value>
   </data>
   <data name="Settings_Theme" xml:space="preserve">
-    <value>Theme:</value>
+    <value>Thème:</value>
   </data>
   <data name="Settings_Language" xml:space="preserve">
-    <value>Language:</value>
+    <value>Langue:</value>
   </data>
   <data name="Settings_HideTrayIcon" xml:space="preserve">
-    <value>Hide tray icon when controller disconnected</value>
+    <value>Masquer l'icône de la barre d'état lorsque la manette est déconnectée</value>
   </data>
   <data name="Settings_HideTrayIconNote" xml:space="preserve">
-    <value>Note: This feature is disabled on Linux due to platform limitations.</value>
+    <value>Remarque: Cette fonctionnalité est désactivée sous Linux en raison de limitations de la plateforme.</value>
   </data>
   <data name="Settings_Notifications" xml:space="preserve">
     <value>Notifications</value>
   </data>
   <data name="Settings_NotifyConnected" xml:space="preserve">
-    <value>Show notification when controller connected</value>
+    <value>Afficher une notification lorsque la manette est connectée</value>
   </data>
   <data name="Settings_NotifyDisconnected" xml:space="preserve">
-    <value>Show notification when controller disconnected</value>
+    <value>Afficher une notification lorsque la manette est déconnectée</value>
   </data>
   <data name="Settings_NotifyLowBattery" xml:space="preserve">
-    <value>Show notification when battery is low</value>
+    <value>Afficher une notification lorsque la batterie est faible</value>
   </data>
 
   <!-- Language Options -->
   <data name="Language_Auto" xml:space="preserve">
-    <value>Auto</value>
+    <value>Automatique</value>
   </data>
   <data name="Language_English" xml:space="preserve">
-    <value>English</value>
-  </data>
-  <data name="Language_Spanish" xml:space="preserve">
-    <value>Español (Spanish)</value>
-  </data>
-  <data name="Language_German" xml:space="preserve">
-    <value>Deutsch (German)</value>
-  </data>
-  <data name="Language_French" xml:space="preserve">
-    <value>Français (French)</value>
+    <value>English (Anglais)</value>
   </data>
   <data name="Language_Hungarian" xml:space="preserve">
-    <value>Magyar (Hungarian)</value>
-  </data>
-  <data name="Language_Portuguese" xml:space="preserve">
-    <value>Português (Portuguese)</value>
+    <value>Magyar (Hongrois)</value>
   </data>
 
   <!-- Theme Options -->
   <data name="Theme_Auto" xml:space="preserve">
-    <value>Auto</value>
+    <value>Automatique</value>
   </data>
   <data name="Theme_Light" xml:space="preserve">
-    <value>Light</value>
+    <value>Clair</value>
   </data>
   <data name="Theme_Dark" xml:space="preserve">
-    <value>Dark</value>
+    <value>Sombre</value>
   </data>
 
   <!-- About Tab -->
@@ -156,10 +144,10 @@
 
   <!-- Tray Menu -->
   <data name="Tray_OpenMainWindow" xml:space="preserve">
-    <value>Open Main Window</value>
+    <value>Ouvrir la Fenêtre Principale</value>
   </data>
   <data name="Tray_Exit" xml:space="preserve">
-    <value>Exit</value>
+    <value>Quitter</value>
   </data>
 
   <!-- App Info -->
@@ -167,51 +155,51 @@
     <value>Controller Monitor</value>
   </data>
   <data name="App_Description" xml:space="preserve">
-    <value>A simple application to monitor game controller battery levels.</value>
+    <value>Une application simple pour surveiller les niveaux de batterie des manettes de jeu.</value>
   </data>
 
   <!-- Connection Status -->
   <data name="ConnectionStatus_Disconnected" xml:space="preserve">
-    <value>Disconnected</value>
+    <value>Déconnecté</value>
   </data>
   <data name="ConnectionStatus_Connected" xml:space="preserve">
-    <value>Connected</value>
+    <value>Connecté</value>
   </data>
   <data name="ConnectionStatus_Charging" xml:space="preserve">
-    <value>Charging</value>
+    <value>En charge</value>
   </data>
   <data name="ConnectionStatus_Unknown" xml:space="preserve">
-    <value>Unknown</value>
+    <value>Inconnu</value>
   </data>
 
   <!-- Battery Level -->
   <data name="BatteryLevel_Unknown" xml:space="preserve">
-    <value>Unknown</value>
+    <value>Inconnu</value>
   </data>
   <data name="BatteryLevel_Empty" xml:space="preserve">
-    <value>Empty</value>
+    <value>Vide</value>
   </data>
   <data name="BatteryLevel_Low" xml:space="preserve">
-    <value>Low</value>
+    <value>Faible</value>
   </data>
   <data name="BatteryLevel_Normal" xml:space="preserve">
     <value>Normal</value>
   </data>
   <data name="BatteryLevel_High" xml:space="preserve">
-    <value>High</value>
+    <value>Élevé</value>
   </data>
   <data name="BatteryLevel_Full" xml:space="preserve">
-    <value>Full</value>
+    <value>Pleine</value>
   </data>
 
   <!-- Controller -->
   <data name="Controller_Unknown" xml:space="preserve">
-    <value>Unknown Controller</value>
+    <value>Manette Inconnue</value>
   </data>
   <data name="Controller_Disconnected" xml:space="preserve">
-    <value>Controller disconnected</value>
+    <value>Manette déconnectée</value>
   </data>
   <data name="Controller_TooltipFormat" xml:space="preserve">
-    <value>{0} - Battery: {1} - Status: {2}</value>
+    <value>{0} - Batterie: {1} - État: {2}</value>
   </data>
 </root>

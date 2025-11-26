@@ -65,6 +65,22 @@
 			<Generator>ResXFileCodeGenerator</Generator>
 			<DependentUpon>Strings.resx</DependentUpon>
 		</EmbeddedResource>
+		<EmbeddedResource Update="Resources\Strings.es.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<DependentUpon>Strings.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Resources\Strings.de.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<DependentUpon>Strings.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Resources\Strings.fr.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<DependentUpon>Strings.resx</DependentUpon>
+		</EmbeddedResource>
+		<EmbeddedResource Update="Resources\Strings.pt-BR.resx">
+			<Generator>ResXFileCodeGenerator</Generator>
+			<DependentUpon>Strings.resx</DependentUpon>
+		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>

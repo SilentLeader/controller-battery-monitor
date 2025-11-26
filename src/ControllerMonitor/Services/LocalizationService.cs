@@ -58,6 +58,10 @@ public class LocalizationService : INotifyPropertyChanged
             "auto" => CultureInfo.InstalledUICulture,
             "en" => new CultureInfo("en"),
             "hu" => new CultureInfo("hu"),
+            "es" => new CultureInfo("es"),
+            "de" => new CultureInfo("de"),
+            "fr" => new CultureInfo("fr"),
+            "pt-br" => new CultureInfo("pt-BR"),
             _ => CultureInfo.InstalledUICulture
         };
 
@@ -76,6 +80,18 @@ public class LocalizationService : INotifyPropertyChanged
             "magyar (hungarian)" => "hu",
             "magyar" => "hu",
             "hungarian" => "hu",
+            "español (spanish)" => "es",
+            "español" => "es",
+            "spanish" => "es",
+            "deutsch (german)" => "de",
+            "deutsch" => "de",
+            "german" => "de",
+            "français (french)" => "fr",
+            "français" => "fr",
+            "french" => "fr",
+            "português (portuguese)" => "pt-br",
+            "português" => "pt-br",
+            "portuguese" => "pt-br",
             _ => "auto"
         };
     }
@@ -87,6 +103,10 @@ public class LocalizationService : INotifyPropertyChanged
             "auto" => "Auto",
             "en" => "English",
             "hu" => "Magyar (Hungarian)",
+            "es" => "Español (Spanish)",
+            "de" => "Deutsch (German)",
+            "fr" => "Français (French)",
+            "pt-br" => "Português (Portuguese)",
             _ => "Auto"
         };
     }
