@@ -96,7 +96,7 @@ public partial class AppViewModel : ObservableObject, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private async void OnBatteryInfoChanged(object? sender, BatteryInfoViewModel? batteryInfo)
+    private async void OnBatteryInfoChanged(object? sender, BatteryInfo batteryInfo)
     {
         if (batteryInfo == null) return;
 
@@ -127,7 +127,7 @@ public partial class AppViewModel : ObservableObject, IDisposable
         }
     }
     
-    private static string GetControllerDisplayName(BatteryInfoViewModel batteryInfo)
+    private static string GetControllerDisplayName(BatteryInfo batteryInfo)
     {
         if (batteryInfo?.IsConnected != true)
             return "Unknown Controller";

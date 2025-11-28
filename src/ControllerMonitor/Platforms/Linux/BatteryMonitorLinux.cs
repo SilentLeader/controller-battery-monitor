@@ -1,12 +1,11 @@
+#if LINUX
 using System;
 using System.IO;
 using System.Threading.Tasks;
-using ControllerMonitor.ViewModels;
 using ControllerMonitor.Services;
 using ControllerMonitor.Interfaces;
 using Microsoft.Extensions.Logging;
-
-#if LINUX
+using ControllerMonitor.Models;
 using System.Linq;
 using Microsoft.Extensions.DependencyInjection;
 using BatteryLevel = ControllerMonitor.UPower.ValueObjects.BatteryLevel;
@@ -14,7 +13,6 @@ using ControllerMonitor.UPower.Services;
 using ControllerMonitor.UPower.Models;
 using ControllerMonitor.UPower.Exceptions;
 using UPowerBatteryState = ControllerMonitor.UPower.ValueObjects.BatteryState;
-#endif
 using ControllerBatteryLevel = ControllerMonitor.ValueObjects.BatteryLevel;
 
 namespace ControllerMonitor.Platforms.Linux;
@@ -45,14 +43,13 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
     private const string PowerSupplyCapacityLevel = "POWER_SUPPLY_CAPACITY_LEVEL=";
     private const string PowerSupplyStatus = "POWER_SUPPLY_STATUS=";
 
-    public override async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
+    protected override async Task<BatteryInfo> GetBatteryInfoInternalAsync()
     {
         try
         {
             // Dual-tier battery detection: UPower first, then sysfs fallback
             
             // Tier 1: Try UPower (primary detection mechanism)
-#if LINUX
             var upowerResult = await TryGetBatteryFromUPowerAsync();
             if (upowerResult != null)
             {
@@ -62,8 +59,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             }
             
             _logger.LogDebug("UPower detection failed, falling back to sysfs");
-#endif
-            
+
             // Tier 2: Fallback to sysfs (existing implementation)
             var sysfsResult = await GetBatteryFromSysfsAsync();
             if (sysfsResult != null)
@@ -74,7 +70,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             }
             
             _logger.LogDebug("No battery devices detected via UPower or sysfs");
-            return new BatteryInfoViewModel { IsConnected = false };
+            return new ();
         }
         catch (Exception ex)
         {
@@ -95,15 +91,14 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
                 _logger.LogError(fallbackEx, "Fallback to sysfs also failed");
             }
             
-            return new BatteryInfoViewModel { IsConnected = false };
+            return new ();
         }
     }
 
-#if LINUX
     /// <summary>
     /// Attempts to get battery information using UPower (primary detection mechanism)
     /// </summary>
-    private async Task<BatteryInfoViewModel?> TryGetBatteryFromUPowerAsync()
+    private async Task<BatteryInfo?> TryGetBatteryFromUPowerAsync()
     {
         try
         {
@@ -125,7 +120,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             var gamingDevice = devices.FirstOrDefault(d => d.IsGamingController);
             if (gamingDevice != null)
             {
-                return ConvertUPowerToViewModel(gamingDevice);
+                return ConvertUPowerToBatteryInfo(gamingDevice);
             }
             
             return null;
@@ -191,9 +186,9 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
     /// <summary>
     /// Converts UPower BatteryDevice to BatteryInfoViewModel
     /// </summary>
-    private static BatteryInfoViewModel ConvertUPowerToViewModel(BatteryDevice device)
+    private static BatteryInfo ConvertUPowerToBatteryInfo(BatteryDevice device)
     {
-        return new BatteryInfoViewModel
+        return new BatteryInfo
         {
             Level = ConvertUPowerBatteryLevelToBatteryLevel(device.BatteryLevelCurrent) ?? ConvertUPowerPercentageToBatteryLevel(device.Percentage),
             Capacity = (int)Math.Round(device.Percentage),
@@ -234,12 +229,11 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             _ => null
         };
     }
-#endif
 
     /// <summary>
     /// Gets battery information using sysfs (fallback mechanism)
     /// </summary>
-    private async Task<BatteryInfoViewModel?> GetBatteryFromSysfsAsync()
+    private async Task<BatteryInfo?> GetBatteryFromSysfsAsync()
     {
         try
         {
@@ -250,7 +244,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             }
 
             var (level, isCharging, capacity) = await ReadBatteryInfoAsync(deviceInfo.Value.devicePath);
-            return new BatteryInfoViewModel
+            return new BatteryInfo
             {
                 Level = level,
                 Capacity = capacity,
@@ -362,3 +356,4 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
         };
     }
 }
+#endif

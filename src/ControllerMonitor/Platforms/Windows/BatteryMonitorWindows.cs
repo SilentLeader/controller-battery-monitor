@@ -1,19 +1,18 @@
 #if WINDOWS
 using ControllerMonitor.XInput.Interfaces;
 using ControllerMonitor.XInput.Helpers;
-#endif
 using System;
 using System.Threading.Tasks;
 using ControllerMonitor.ViewModels;
 using ControllerMonitor.Services;
 using ControllerMonitor.Interfaces;
 using Microsoft.Extensions.Logging;
+using ControllerMonitor.Models;
 
 namespace ControllerMonitor.Platforms.Windows;
 
 public class BatteryMonitorWindows : BatteryMonitorServiceBase
 {
-#if WINDOWS
     private readonly IXInputService _xInputService;
 
     public BatteryMonitorWindows(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger, IXInputService xInputService) 
@@ -21,46 +20,37 @@ public class BatteryMonitorWindows : BatteryMonitorServiceBase
     {
         _xInputService = xInputService;
     }
-#else
-    public BatteryMonitorWindows(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger) 
-        : base(settingsService, logger)
-    {
-    }
-#endif
 
-    public override async Task<BatteryInfoViewModel> GetBatteryInfoAsync()
+    protected override async Task<BatteryInfo> GetBatteryInfoInternalAsync()
     {
-        var batteryInfo = new BatteryInfoViewModel { IsConnected = false };
-
-#if WINDOWS
         try
         {
             var controllerInfo = await _xInputService.GetFirstControllerBatteryInfoAsync();
             
             if (controllerInfo?.IsConnected == true)
             {
-                batteryInfo.IsConnected = true;
                 // Convert XInput battery level to main project battery level
                 var xInputBatteryLevel = BatteryLevelConverter.ConvertBatteryLevel(controllerInfo.BatteryLevel);
-                batteryInfo.Level = ConvertXInputBatteryLevelToMainBatteryLevel(xInputBatteryLevel);
-                batteryInfo.IsCharging = controllerInfo.IsWired;
-                batteryInfo.Capacity = null; // XInput doesn't provide percentage
-                batteryInfo.ModelName = controllerInfo.ModelName;
+                var batteryInfo = new BatteryInfo
+                {
+                    IsConnected = true;
+                    Level = ConvertXInputBatteryLevelToMainBatteryLevel(xInputBatteryLevel);
+                    IsCharging = controllerInfo.IsWired;
+                    Capacity = null; // XInput doesn't provide percentage
+                    ModelName = controllerInfo.ModelName;
+                }
+                return batteryInfo;
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting battery information from XInput service");
-            batteryInfo.IsConnected = false;
         }
 
-        return batteryInfo;
-#else
-        return await Task.FromResult(batteryInfo) ;
-#endif  
+        return new();
     }
 
-#if WINDOWS
+
     /// <summary>
     /// Converts XInput project BatteryLevel to main project BatteryLevel
     /// </summary>
@@ -76,5 +66,7 @@ public class BatteryMonitorWindows : BatteryMonitorServiceBase
             _ => ValueObjects.BatteryLevel.Unknown
         };
     }
-#endif
+
 }
+
+#endif

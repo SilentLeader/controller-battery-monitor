@@ -9,6 +9,7 @@ using Avalonia.Styling;
 using Avalonia.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using ControllerMonitor.Interfaces;
+using ControllerMonitor.Models;
 using ControllerMonitor.Services;
 using ControllerMonitor.ValueObjects;
 using Microsoft.Extensions.Logging;
@@ -147,7 +148,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         _debounceTimer.Start();
     }
 
-    private async void OnBatteryInfoChanged(object? sender, BatteryInfoViewModel? batteryInfo)
+    private async void OnBatteryInfoChanged(object? sender, BatteryInfo batteryInfo)
     {
         if (batteryInfo == null) return;
 
@@ -261,7 +262,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         GC.SuppressFinalize(this);
     }
 
-    private static string GetControllerDisplayName(BatteryInfoViewModel batteryInfo)
+    private static string GetControllerDisplayName(BatteryInfo batteryInfo)
     {
         if (batteryInfo?.IsConnected != true)
             return LocalizationService.Instance["Controller_Unknown"];

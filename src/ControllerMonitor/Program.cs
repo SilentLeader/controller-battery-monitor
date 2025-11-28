@@ -123,18 +123,16 @@ static class Program
         {
 #if WINDOWS
             services.AddSingleton<IXInputService, XInputService>();
-#endif
             services.AddSingleton<IBatteryMonitorService, BatteryMonitorWindows>();
             services.AddSingleton<ISettingsService, SettingsServiceWindows>();
-#if WINDOWS
             services.AddSingleton<INotificationService, NotificationServiceWindows>();
 #endif
         }
         else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
         {
+#if LINUX
             services.AddSingleton<IBatteryMonitorService, BatteryMonitorLinux>();
             services.AddSingleton<ISettingsService, SettingsServiceLinux>();
-#if LINUX
             services.AddSingleton<INotificationService, NotificationServiceLinux>();
             services.AddUPower();
 #endif
