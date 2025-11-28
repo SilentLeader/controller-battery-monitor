@@ -4,7 +4,7 @@ using System.Globalization;
 using Avalonia.Data;
 using Avalonia.Data.Converters;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.MarkupExtensions;
+using System.Diagnostics.CodeAnalysis;
 using ControllerMonitor.Services;
 
 namespace ControllerMonitor.Extensions;
@@ -18,6 +18,7 @@ public class LocalizeExtension : MarkupExtension
 
     public string Key { get; set; }
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Binding usage here is intentional and safe; avoid linker warning for reflection-based binding.")]
     public override object ProvideValue(IServiceProvider serviceProvider)
     {
         var keyToUse = Key;
@@ -34,13 +35,14 @@ public class LocalizeExtension : MarkupExtension
         };
 
         // Bind to CurrentCulture so changes trigger the converter
-        var cultureBinding = new ReflectionBindingExtension("CurrentCulture")
+        var cultureBinding = new Binding
         {
+            Path = "CurrentCulture",
             Source = LocalizationService.Instance,
             Mode = BindingMode.OneWay
         };
 
-        multiBinding.Bindings.Add((IBinding)cultureBinding.ProvideValue(serviceProvider));
+        multiBinding.Bindings.Add(cultureBinding);
 
         return multiBinding;
     }
