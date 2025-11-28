@@ -33,12 +33,12 @@ public class BatteryMonitorWindows : BatteryMonitorServiceBase
                 var xInputBatteryLevel = BatteryLevelConverter.ConvertBatteryLevel(controllerInfo.BatteryLevel);
                 var batteryInfo = new BatteryInfo
                 {
-                    IsConnected = true;
-                    Level = ConvertXInputBatteryLevelToMainBatteryLevel(xInputBatteryLevel);
-                    IsCharging = controllerInfo.IsWired;
-                    Capacity = null; // XInput doesn't provide percentage
-                    ModelName = controllerInfo.ModelName;
-                }
+                    IsConnected = true,
+                    Level = ConvertXInputBatteryLevelToMainBatteryLevel(xInputBatteryLevel),
+                    IsCharging = controllerInfo.IsWired,
+                    Capacity = null, // XInput doesn't provide percentage
+                    ModelName = controllerInfo.ModelName
+                };
                 return batteryInfo;
             }
         }

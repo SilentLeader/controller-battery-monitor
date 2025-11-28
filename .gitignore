@@ -75,3 +75,4 @@ build/
 # User-specific files
 *.local
 /src/ControllerMonitor/Properties/PublishProfiles/FolderProfile.pubxml
+/src/ControllerMonitor/Resources/Strings.Designer.cs
