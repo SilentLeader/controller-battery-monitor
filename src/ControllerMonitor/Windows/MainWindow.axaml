@@ -26,6 +26,7 @@
                     <TextBlock.Text>
                         <MultiBinding Converter="{StaticResource BatteryInfoToControllerNameConverter}">
                             <Binding Path="ControllerInfo.BatteryInfo" />
+                            <Binding Path="ControllerInfo.BatteryInfo.ModelName" />
                             <Binding Path="Settings.Language" />
                         </MultiBinding>
                     </TextBlock.Text>
