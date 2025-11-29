@@ -53,38 +53,38 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<AvaloniaResource Include="Assets\**" />
+		<AvaloniaResource Include="Assets\icons\**" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<EmbeddedResource Update="Resources\Strings.resx">
+		<EmbeddedResource Update="Assets\Resources\Strings.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<LastGenOutput>Strings.Designer.cs</LastGenOutput>
 		</EmbeddedResource>
-		<EmbeddedResource Update="Resources\Strings.hu.resx">
+		<EmbeddedResource Update="Assets\Resources\Strings.hu.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<DependentUpon>Strings.resx</DependentUpon>
 		</EmbeddedResource>
-		<EmbeddedResource Update="Resources\Strings.es.resx">
+		<EmbeddedResource Update="Assets\Resources\Strings.es.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<DependentUpon>Strings.resx</DependentUpon>
 		</EmbeddedResource>
-		<EmbeddedResource Update="Resources\Strings.de.resx">
+		<EmbeddedResource Update="Assets\Resources\Strings.de.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<DependentUpon>Strings.resx</DependentUpon>
 		</EmbeddedResource>
-		<EmbeddedResource Update="Resources\Strings.fr.resx">
+		<EmbeddedResource Update="Assets\Resources\Strings.fr.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<DependentUpon>Strings.resx</DependentUpon>
 		</EmbeddedResource>
-		<EmbeddedResource Update="Resources\Strings.pt-BR.resx">
+		<EmbeddedResource Update="Assets\Resources\Strings.pt-BR.resx">
 			<Generator>ResXFileCodeGenerator</Generator>
 			<DependentUpon>Strings.resx</DependentUpon>
 		</EmbeddedResource>
 	</ItemGroup>
 
 	<ItemGroup>
-		<Compile Update="Resources\Strings.Designer.cs">
+		<Compile Update="Assets\Resources\Strings.Designer.cs">
 			<DesignTime>True</DesignTime>
 			<AutoGen>True</AutoGen>
 			<DependentUpon>Strings.resx</DependentUpon>

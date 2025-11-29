@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using ControllerMonitor.Services;
@@ -6,12 +7,12 @@ using ControllerMonitor.ValueObjects;
 
 namespace ControllerMonitor.Converters;
 
-public class ConnectionStatusToLocalizedStringConverter : IValueConverter
+public class ConnectionStatusToLocalizedStringConverter : IMultiValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not ConnectionStatus status)
-            return value?.ToString() ?? string.Empty;
+        if (values[0] is not ConnectionStatus status)
+            return values[0]?.ToString() ?? string.Empty;
 
         var loc = LocalizationService.Instance;
 
@@ -22,10 +23,5 @@ public class ConnectionStatusToLocalizedStringConverter : IValueConverter
             ConnectionStatus.Charging => loc["ConnectionStatus_Charging"],
             _ => loc["ConnectionStatus_Unknown"]
         };
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
     }
 }

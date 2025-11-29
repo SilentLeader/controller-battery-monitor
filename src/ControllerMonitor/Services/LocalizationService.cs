@@ -17,7 +17,7 @@ public class LocalizationService : INotifyPropertyChanged
 
     private LocalizationService()
     {
-        _resourceManager = new ResourceManager("ControllerMonitor.Resources.Strings", typeof(LocalizationService).Assembly);
+        _resourceManager = new ResourceManager("ControllerMonitor.Assets.Resources.Strings", typeof(LocalizationService).Assembly);
         _currentCulture = CultureInfo.CurrentUICulture;
     }
 

@@ -22,9 +22,23 @@
     <TabControl Margin="20">
         <TabItem Header="{ext:Localize Tab_BatteryInfo}">
             <StackPanel>
-                <TextBlock Text="{Binding ControllerInfo.Name}" FontSize="18" FontWeight="Bold" />
+                <TextBlock FontSize="18" FontWeight="Bold" >
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource BatteryInfoToControllerNameConverter}">
+                            <Binding Path="ControllerInfo.BatteryInfo" />
+                            <Binding Path="Settings.Language" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
                 <TextBlock Text="{ext:Localize BatteryLevel}" Margin="0,10,0,0" />
-                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Level, Converter={StaticResource BatteryLevelToLocalizedStringConverter}}" FontSize="16" />
+                <TextBlock FontSize="16" >
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource BatteryLevelToLocalizedStringConverter}">
+                            <Binding Path="ControllerInfo.BatteryInfo.Level" />
+                            <Binding Path="Settings.Language" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
                 <StackPanel IsVisible="{Binding ControllerInfo.BatteryInfo.Capacity, Converter={StaticResource CapacityToVisibilityConverter}}">
                     <TextBlock Text="{ext:Localize Capacity}" Margin="0,10,0,0" />
                     <StackPanel Orientation="Horizontal">
@@ -33,7 +47,14 @@
                     </StackPanel>
                 </StackPanel>
                 <TextBlock Text="{ext:Localize Status}" Margin="0,10,0,0" />
-                <TextBlock Text="{Binding ControllerInfo.BatteryInfo.Status, Converter={StaticResource ConnectionStatusToLocalizedStringConverter}}" FontSize="16" />
+                <TextBlock FontSize="16" >
+                    <TextBlock.Text>
+                        <MultiBinding Converter="{StaticResource ConnectionStatusToLocalizedStringConverter}">
+                            <Binding Path="ControllerInfo.BatteryInfo.Status" />
+                            <Binding Path="Settings.Language" />
+                        </MultiBinding>
+                    </TextBlock.Text>
+                </TextBlock>
             </StackPanel>
         </TabItem>
         <TabItem Header="{ext:Localize Tab_Settings}">

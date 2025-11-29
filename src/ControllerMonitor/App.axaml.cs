@@ -21,8 +21,9 @@ namespace ControllerMonitor
             AvaloniaXamlLoader.Load(this);
         }
 
-        public override void OnFrameworkInitializationCompleted()
+        public override void OnFrameworkInitializationCompleted()        
         {
+            
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Resolve services from DI container

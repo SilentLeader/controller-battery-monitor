@@ -1,23 +1,26 @@
 using System;
 using System.Threading.Tasks;
-using System.Timers;
 using Microsoft.Extensions.Logging;
 using ControllerMonitor.Models;
-using ControllerMonitor.ViewModels;
 
 namespace ControllerMonitor.Services;
 
+using System.Threading;
 using ControllerMonitor.Interfaces;
 
 public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDisposable
 {
-    public event EventHandler<BatteryInfoViewModel?>? BatteryInfoChanged;
+    public event EventHandler<BatteryInfo>? BatteryInfoChanged;
     protected readonly ISettingsService _settingsService;
     protected readonly ILogger<IBatteryMonitorService> _logger;
-    private Timer? _monitoringTimer;
-    private BatteryInfoViewModel? _previousBatteryInfo;
+    private System.Timers.Timer? _monitoringTimer;
+    private BatteryInfo _previousBatteryInfo = new();
+    private DateTime? _lastUpdate;
+
+    // Update frequency
+    private TimeSpan _updateFreq = TimeSpan.FromSeconds(1);
     private bool disposedValue;
-    protected object LockObject = new();
+    private static readonly SemaphoreSlim _lockObject = new(1, 1);
 
     public BatteryMonitorServiceBase(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger)
     {
@@ -26,33 +29,55 @@ public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDispo
         _settingsService.SettingsChanged += SettingsChanged;
     }
 
-    public abstract Task<BatteryInfoViewModel> GetBatteryInfoAsync();
+    public async Task<BatteryInfo> GetBatteryInfoAsync()
+    {
+        await UpdateBatteryInfo();
+        return _previousBatteryInfo;
+    }
+
+    protected abstract Task<BatteryInfo> GetBatteryInfoInternalAsync();
 
     public void StartMonitoring()
     {
         var settings = _settingsService.GetSettings();
         var updateFreq = settings.UpdateFrequencySeconds < 1 ? 1 : settings.UpdateFrequencySeconds;
-        _monitoringTimer = new Timer(TimeSpan.FromSeconds(updateFreq));
+        _updateFreq = TimeSpan.FromSeconds(updateFreq);
+        _monitoringTimer = new System.Timers.Timer(_updateFreq);
         _monitoringTimer.Elapsed += async (obj, arg) =>
         {
-            try
-            {
-                var currentInfo = await GetBatteryInfoAsync();
-                lock (LockObject)
-                {
-                    if (HasBatteryInfoChanged(_previousBatteryInfo, currentInfo))
-                    {
-                        _previousBatteryInfo = currentInfo;
-                        BatteryInfoChanged?.Invoke(this, currentInfo);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Periodic state check error");
-            }
+            await UpdateBatteryInfo(true);
         };
         _monitoringTimer.Start();
+    }
+
+    private async Task UpdateBatteryInfo(bool force = false)
+    {
+        await _lockObject.WaitAsync();
+        try
+        {   
+            if(!force 
+                && _lastUpdate != null 
+                && (DateTime.Now - _lastUpdate) < _updateFreq)
+            {
+                return;
+            }
+
+            var currentInfo = await GetBatteryInfoInternalAsync();     
+            if (_previousBatteryInfo != currentInfo)
+            {
+                _previousBatteryInfo = currentInfo;
+                BatteryInfoChanged?.Invoke(this, currentInfo);
+            }
+            _lastUpdate = DateTime.Now;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Periodic state check error");
+        }
+        finally
+        {
+            _lockObject.Release();
+        }
     }
 
     public void Dispose()
@@ -71,7 +96,6 @@ public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDispo
                 _monitoringTimer?.Stop();
                 _monitoringTimer?.Dispose();
                 _monitoringTimer = null;
-                _previousBatteryInfo = null;
                 _settingsService.SettingsChanged -= SettingsChanged;
             }
 
@@ -88,15 +112,5 @@ public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDispo
         _monitoringTimer?.Stop();
         _monitoringTimer?.Dispose();
         StartMonitoring();
-    }
-
-    private static bool HasBatteryInfoChanged(BatteryInfoViewModel? previous, BatteryInfoViewModel? current)
-    {
-        if (previous == null || current == null) return true;
-        return previous.IsConnected != current.IsConnected ||
-               previous.Level != current.Level ||
-               previous.IsCharging != current.IsCharging ||
-               !Equals(previous.Capacity, current.Capacity) ||
-               previous.ModelName != current.ModelName;
     }
 }

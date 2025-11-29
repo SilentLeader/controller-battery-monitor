@@ -1,47 +1,28 @@
 using System;
-using System.Collections.Generic;
-using System.Globalization;
+using System.Diagnostics.CodeAnalysis;
 using Avalonia.Data;
-using Avalonia.Data.Converters;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.MarkupExtensions;
+using ControllerMonitor.Converters;
 using ControllerMonitor.Services;
 
 namespace ControllerMonitor.Extensions;
 
-public class LocalizeExtension : MarkupExtension
+public class LocalizeExtension(string key) : MarkupExtension
 {
-    public LocalizeExtension(string key)
-    {
-        Key = key;
-    }
+    public string Key { get; set; } = key;
 
-    public string Key { get; set; }
+    private static readonly LocalizeConverter LOCALIZE_CONVERTER = new();
 
+    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Binding usage here is intentional and safe; avoid linker warning for reflection-based binding.")]
     public override object ProvideValue(IServiceProvider serviceProvider)
-    {
-        var keyToUse = Key;
-
-        // Create a MultiBinding that binds to CurrentCulture property
-        // This ensures the binding updates when the language changes
-        var multiBinding = new MultiBinding
+    {   
+        return new Binding
         {
-            Converter = new FuncMultiValueConverter<object, string>(values =>
-            {
-                // When CurrentCulture changes, this converter is called again
-                return LocalizationService.Instance[keyToUse];
-            })
-        };
-
-        // Bind to CurrentCulture so changes trigger the converter
-        var cultureBinding = new ReflectionBindingExtension("CurrentCulture")
-        {
+            Converter = LOCALIZE_CONVERTER,
+            ConverterParameter = Key,
             Source = LocalizationService.Instance,
+            Path = nameof(LocalizationService.CurrentCulture),
             Mode = BindingMode.OneWay
         };
-
-        multiBinding.Bindings.Add((IBinding)cultureBinding.ProvideValue(serviceProvider));
-
-        return multiBinding;
     }
 }

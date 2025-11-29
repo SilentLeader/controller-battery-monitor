@@ -1,14 +1,14 @@
 using System;
 using System.Threading.Tasks;
-using ControllerMonitor.ViewModels;
+using ControllerMonitor.Models;
 
 namespace ControllerMonitor.Interfaces;
 
 public interface IBatteryMonitorService
 {
-    Task<BatteryInfoViewModel> GetBatteryInfoAsync();
+    Task<BatteryInfo> GetBatteryInfoAsync();
 
-    event EventHandler<BatteryInfoViewModel?>? BatteryInfoChanged;
+    event EventHandler<BatteryInfo>? BatteryInfoChanged;
 
     void StartMonitoring();
 }
