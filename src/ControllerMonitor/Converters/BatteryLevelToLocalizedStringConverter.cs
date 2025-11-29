@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using ControllerMonitor.Services;
@@ -6,12 +7,12 @@ using ControllerMonitor.ValueObjects;
 
 namespace ControllerMonitor.Converters;
 
-public class BatteryLevelToLocalizedStringConverter : IValueConverter
+public class BatteryLevelToLocalizedStringConverter : IMultiValueConverter
 {
-    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
     {
-        if (value is not BatteryLevel level)
-            return value?.ToString() ?? string.Empty;
+        if (values[0] is not BatteryLevel level)
+            return values[0]?.ToString() ?? string.Empty;
 
         var loc = LocalizationService.Instance;
 
@@ -25,10 +26,5 @@ public class BatteryLevelToLocalizedStringConverter : IValueConverter
             BatteryLevel.Full => loc["BatteryLevel_Full"],
             _ => loc["BatteryLevel_Unknown"]
         };
-    }
-
-    public object? ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
-    {
-        throw new NotImplementedException();
     }
 }

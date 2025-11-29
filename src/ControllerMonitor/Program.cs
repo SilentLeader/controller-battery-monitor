@@ -9,12 +9,12 @@ using Microsoft.Extensions.Logging;
 using ControllerMonitor.ViewModels;
 using ControllerMonitor.Windows;
 using System.Runtime.InteropServices;
-using ControllerMonitor.Platforms.Windows;
-using ControllerMonitor.Platforms.Linux;
 #if LINUX
+using ControllerMonitor.Platforms.Linux;
 using ControllerMonitor.UPower.Extensions;
 #endif
 #if WINDOWS
+using ControllerMonitor.Platforms.Windows;
 using ControllerMonitor.XInput.Interfaces;
 using ControllerMonitor.XInput.Services;
 #endif
@@ -23,7 +23,7 @@ namespace ControllerMonitor;
 
 static class Program
 {
-    private const string LogLevelPAramName = "--log-level=";
+    private const string LogLevelParamName = "--log-level=";
 
     public static IServiceProvider? ServiceProvider { get; private set; }
 
@@ -80,10 +80,10 @@ static class Program
 
     private static void SetLogLevel(string[] args, LoggerConfiguration loggerconfig)
     {
-        if (args.Length > 0 && args.Any(x => x.StartsWith(LogLevelPAramName, StringComparison.InvariantCultureIgnoreCase)))
+        if (args.Length > 0 && args.Any(x => x.StartsWith(LogLevelParamName, StringComparison.InvariantCultureIgnoreCase)))
         {
-            var logLevelParam = args.First(x => x.StartsWith(LogLevelPAramName, StringComparison.InvariantCultureIgnoreCase));
-            var logLevel = logLevelParam[LogLevelPAramName.Length..];
+            var logLevelParam = args.First(x => x.StartsWith(LogLevelParamName, StringComparison.InvariantCultureIgnoreCase));
+            var logLevel = logLevelParam[LogLevelParamName.Length..];
             switch (logLevel.ToLower())
             {
                 case "verbose":
@@ -147,5 +147,5 @@ static class Program
         ServiceProvider = services.BuildServiceProvider();
     }
 
-    
+
 }
