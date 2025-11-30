@@ -60,9 +60,6 @@ public partial class AppViewModel : ObservableObject, IDisposable
                     ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
                     ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
                     ControllerInfo.BatteryInfo.ModelName = initialInfo.ModelName;
-
-                    // Set initial controller name with fallback logic
-                    ControllerInfo.Name = GetControllerDisplayName(initialInfo);
                 });
             }
             catch (Exception ex)
@@ -108,9 +105,6 @@ public partial class AppViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
             ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;
-
-            // Set initial controller name with fallback logic
-            ControllerInfo.Name = GetControllerDisplayName(batteryInfo);
         });
     }
 
@@ -127,13 +121,4 @@ public partial class AppViewModel : ObservableObject, IDisposable
         }
     }
     
-    private static string GetControllerDisplayName(BatteryInfo batteryInfo)
-    {
-        if (batteryInfo?.IsConnected != true)
-            return "Unknown Controller";
-            
-        return !string.IsNullOrWhiteSpace(batteryInfo.ModelName)
-            ? batteryInfo.ModelName
-            : "Unknown Controller";
-    }
 }

@@ -34,10 +34,10 @@ public abstract class SettingsServiceBase : ISettingsService
 
     public void LoadSettings()
     {
-        _logger.LogInformation("Loading settings from {Path}", _settingsFilePath);
+        _logger.LogDebug("Loading settings from {Path}", _settingsFilePath);
         if (!File.Exists(_settingsFilePath))
         {
-            _logger.LogInformation("Settings file does not exist");
+            _logger.LogDebug("Settings file does not exist");
             return;
         }
 
@@ -56,7 +56,7 @@ public abstract class SettingsServiceBase : ISettingsService
 
     public async Task SaveSettingsAsync(Settings? settings)
     {
-        _logger.LogInformation("Saving settings to {Path}", _settingsFilePath);
+        _logger.LogDebug("Saving settings to {Path}", _settingsFilePath);
         try
         {
             var json = JsonSerializer.Serialize(settings ?? _settings, _jsonContext.Settings);

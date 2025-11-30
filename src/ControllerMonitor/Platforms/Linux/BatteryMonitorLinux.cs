@@ -159,7 +159,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
                 
                 if (_upowerAvailable)
                 {   
-                    _logger.LogInformation("UPower integration initialized successfully");
+                    _logger.LogDebug("UPower integration initialized successfully");
                 }
                 else
                 {

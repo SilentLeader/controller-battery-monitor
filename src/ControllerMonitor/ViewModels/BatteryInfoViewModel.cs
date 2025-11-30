@@ -34,4 +34,14 @@ public partial class BatteryInfoViewModel : ObservableObject
     {
         OnPropertyChanged(nameof(Status));
     }
+
+    public string GetControllerDisplayName()
+    {
+        if (IsConnected != true)
+            return "Unknown Controller";
+            
+        return !string.IsNullOrWhiteSpace(ModelName)
+            ? ModelName
+            : "Unknown Controller";
+    }
 }

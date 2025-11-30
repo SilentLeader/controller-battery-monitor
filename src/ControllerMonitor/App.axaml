@@ -64,9 +64,10 @@
                 </TrayIcon.IsVisible>
                 <TrayIcon.ToolTipText>
                     <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
+                        <Binding Path="ControllerInfo.BatteryInfo" />
                         <Binding Path="ControllerInfo.BatteryInfo.Level" />
                         <Binding Path="ControllerInfo.BatteryInfo.Status" />
-                        <Binding Path="ControllerInfo.Name" />
+                        <Binding Path="ControllerInfo.BatteryInfo.ModelName" />
                         <Binding Path="Settings.HideTrayIconWhenDisconnected" />
                         <Binding Path="Settings.Language" />
                     </MultiBinding>
@@ -84,9 +85,10 @@
                         <NativeMenuItem IsEnabled="False" x:DataType="vm:AppViewModel">
                             <NativeMenuItem.Header>
                                 <MultiBinding Converter="{StaticResource BatteryInfoToTooltipConverter}">
+                                    <Binding Path="ControllerInfo.BatteryInfo" />
                                     <Binding Path="ControllerInfo.BatteryInfo.Level" />
                                     <Binding Path="ControllerInfo.BatteryInfo.Status" />
-                                    <Binding Path="ControllerInfo.Name" />
+                                    <Binding Path="ControllerInfo.BatteryInfo.ModelName" />
                                     <Binding Path="Settings.HideTrayIconWhenDisconnected" />
                                     <Binding Path="Settings.Language" />
                                 </MultiBinding>
