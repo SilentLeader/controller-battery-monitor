@@ -20,6 +20,7 @@ A cross-platform Avalonia UI application for monitoring game controller battery 
 - **Theme support** - Light, dark, and auto themes
 
 ### Settings & Configuration
+- **Multi-language support** - Interface available in English, German, Spanish, French, Hungarian, and Portuguese (Brazilian)
 - **Start minimized** - Launch directly to system tray
 - **Update frequency** - Configurable polling interval (default: 5 seconds)
 - **Tray icon visibility** - Option to hide tray icon when no controllers connected
@@ -295,20 +296,24 @@ If UPower is unavailable, the application automatically falls back to:
 ## Dependencies
 
 ### Core Dependencies
-- **Avalonia UI** (11.3.6) - Cross-platform XAML-based UI framework
-- **CommunityToolkit.Mvvm** (8.4.0) - MVVM toolkit for Avalonia
-- **Microsoft.Extensions.DependencyInjection** (9.0.9) - Dependency injection container
-- **Microsoft.Extensions.Logging** (9.0.9) - Logging abstractions
+- **Avalonia UI** - Cross-platform XAML-based UI framework
+- **CommunityToolkit.Mvvm** - MVVM toolkit for Avalonia
+- **Microsoft.Extensions.DependencyInjection** - Dependency injection container
+- **Microsoft.Extensions.Logging** - Logging abstractions
 
 ### Logging
-- **Serilog** (4.3.0) - Structured logging framework
-- **Serilog.Sinks.Console** (6.0.0) - Console logging sink
-- **Serilog.Extensions.Logging** (9.0.2) - Serilog logging provider
+- **Serilog** - Structured logging framework
+- **Serilog.Sinks.Console** - Console logging sink
+- **Serilog.Extensions.Logging** - Serilog logging provider
 
 ### Linux-Specific
 - **ControllerMonitor.UPower** - Native UPower integration library
 - **libupower-glib** (system dependency) - UPower system service
 - **libnotify** (optional) - System notifications support
+
+### Windows-Specific
+- **Microsoft.Toolkit.Uwp.Notifications** - Native Windows notification support
+- **ControllerMonitor.XInput** - XInput API integration library
 
 ## Sources
 
