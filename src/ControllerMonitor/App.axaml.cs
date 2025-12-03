@@ -12,7 +12,7 @@ namespace ControllerMonitor
 {
     public partial class App : Application
     {   
-        public AppViewModel? _viewModel;
+        private AppViewModel? _viewModel;
 
         private MainWindow? _mainWindow;
 
@@ -23,13 +23,12 @@ namespace ControllerMonitor
 
         public override void OnFrameworkInitializationCompleted()        
         {
-            
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Resolve services from DI container
-                _mainWindow = Program.ServiceProvider!.GetRequiredService<MainWindow>();
-                _viewModel = Program.ServiceProvider!.GetRequiredService<AppViewModel>();
-                var singleInstanceService = Program.ServiceProvider!.GetRequiredService<SingleInstanceService>();
+                _mainWindow = Program.ServiceProvider.GetRequiredService<MainWindow>();
+                _viewModel = Program.ServiceProvider.GetRequiredService<AppViewModel>();
+                var singleInstanceService = Program.ServiceProvider.GetRequiredService<SingleInstanceService>();
 
                 desktop.MainWindow = _mainWindow;
 

@@ -25,7 +25,7 @@ static class Program
 {
     private const string LogLevelParamName = "--log-level=";
 
-    public static IServiceProvider? ServiceProvider { get; private set; }
+    public static IServiceProvider ServiceProvider { get; private set; } = null!;
 
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
@@ -33,17 +33,13 @@ static class Program
     public static int Main(string[] args)
     {
         // Configure Serilog
-        var loggerconfig = new LoggerConfiguration()
-            .WriteTo.Console();
-        SetLogLevel(args, loggerconfig);
-
-        Log.Logger = loggerconfig.CreateLogger();
+        Log.Logger = BuildLogger(args);
 
         // Set up dependency injection
         ConfigureServices();
         try
         {
-            using (var singleInstanceService = ServiceProvider!.GetRequiredService<SingleInstanceService>())
+            using (var singleInstanceService = ServiceProvider.GetRequiredService<SingleInstanceService>())
             {
                 if (!singleInstanceService.TryAcquireSingleInstance())
                 {
@@ -52,9 +48,9 @@ static class Program
                     return 2;
                 }
 
-                var settingsService = ServiceProvider!.GetRequiredService<ISettingsService>();
+                var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
                 settingsService.LoadSettings();
-                var batteryMonitorService = ServiceProvider!.GetRequiredService<IBatteryMonitorService>();
+                var batteryMonitorService = ServiceProvider.GetRequiredService<IBatteryMonitorService>();
                 batteryMonitorService.StartMonitoring();
 
                 // This is the first instance, proceed with the application
@@ -78,8 +74,11 @@ static class Program
             .WithInterFont()
             .LogToTrace();
 
-    private static void SetLogLevel(string[] args, LoggerConfiguration loggerconfig)
+    private static Serilog.Core.Logger BuildLogger(string[] args)
     {
+        var loggerConfig = new LoggerConfiguration()
+            .WriteTo.Console();
+        
         if (args.Length > 0 && args.Any(x => x.StartsWith(LogLevelParamName, StringComparison.InvariantCultureIgnoreCase)))
         {
             var logLevelParam = args.First(x => x.StartsWith(LogLevelParamName, StringComparison.InvariantCultureIgnoreCase));
@@ -87,25 +86,27 @@ static class Program
             switch (logLevel.ToLower())
             {
                 case "verbose":
-                    loggerconfig.MinimumLevel.Verbose();
+                    loggerConfig.MinimumLevel.Verbose();
                     break;
                 case "debug":
-                    loggerconfig.MinimumLevel.Debug();
+                    loggerConfig.MinimumLevel.Debug();
                     break;
                 case "warning":
-                    loggerconfig.MinimumLevel.Warning();
+                    loggerConfig.MinimumLevel.Warning();
                     break;
                 case "error":
-                    loggerconfig.MinimumLevel.Error();
+                    loggerConfig.MinimumLevel.Error();
                     break;
                 case "fatal":
-                    loggerconfig.MinimumLevel.Fatal();
+                    loggerConfig.MinimumLevel.Fatal();
                     break;
                 default:
-                    loggerconfig.MinimumLevel.Information();
+                    loggerConfig.MinimumLevel.Information();
                     break;
             }
         }
+
+        return loggerConfig.CreateLogger();
     }
 
     private static void ConfigureServices()

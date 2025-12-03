@@ -114,7 +114,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             }
             
             // Get all battery devices from UPower
-            var devices = await _upowerProvider.GetBatteryDevicesAsync();
+            var devices = await _upowerProvider.GetBatteryDevicesAsync().ConfigureAwait(false);
             
             // Prioritize gaming controllers
             var gamingDevice = devices.FirstOrDefault(d => d.IsGamingController);
@@ -237,7 +237,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
     {
         try
         {
-            var deviceInfo = FindXboxBatteryDevice();
+            var deviceInfo =  await FindXboxBatteryDeviceAsync();
             if (deviceInfo == null)
             {
                 return null;
@@ -260,7 +260,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
         }
     }
 
-    private static (string devicePath, string modelName)? FindXboxBatteryDevice()
+    private static async Task<(string devicePath, string modelName)?> FindXboxBatteryDeviceAsync()
     {
         if (!Directory.Exists(PowerSupplyPath))
             return null;
@@ -272,15 +272,15 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             if (!File.Exists(typePath))
                 continue;
 
-            var deviceType = File.ReadAllText(typePath).Trim();
-            if (deviceType != "Battery")
+            var deviceType = await File.ReadAllTextAsync(typePath);
+            if (deviceType.Trim() != "Battery")
                 continue;
 
             var ueventPath = Path.Combine(devicePath, "uevent");
             if (!File.Exists(ueventPath))
                 continue;
 
-            var lines = File.ReadAllText(ueventPath);
+            var lines = await File.ReadAllTextAsync(ueventPath);
             foreach (var line in lines.AsSpan().EnumerateLines())
             {
                 if (line.StartsWith(PowerSupplyModelName))

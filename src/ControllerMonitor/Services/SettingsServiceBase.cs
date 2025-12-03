@@ -74,11 +74,6 @@ public abstract class SettingsServiceBase : ISettingsService
         }
     }
 
-    public void SaveSettings(Settings? settings)
-    {
-        SaveSettingsAsync(settings).GetAwaiter().GetResult();
-    }
-
     public Settings GetSettings()
     {
         return _settings.ShallowCopy();

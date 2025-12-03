@@ -5,7 +5,7 @@
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<SelfContained>true</SelfContained>
 		<InvariantGlobalization>false</InvariantGlobalization>
-		<TrimMode>partial</TrimMode>
+		<TrimMode>copyused</TrimMode>
 	</PropertyGroup>
 	
 	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-x86' OR '$(RuntimeIdentifier)' == 'win-arm64' OR '$([MSBuild]::IsOSPlatform(Windows))' == 'true'">

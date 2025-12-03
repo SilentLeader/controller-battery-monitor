@@ -21,7 +21,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IBatteryMonitorService _batteryService;
     private readonly ISettingsService _settingsService;
     private readonly INotificationService _notificationService;
-    private System.Timers.Timer _debounceTimer;
+    private Timer _settingsSaveDebounceTimer;
     private BatteryLevel _previousBatteryLevel = BatteryLevel.Unknown;
 
     private bool _previousIsConnected = false;
@@ -46,11 +46,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private ThemeVariant? themeVariant;
 
     private bool disposedValue;
-
-    /// <summary>
-    /// Gets a value indicating whether the current platform is Linux
-    /// </summary>
-    public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
 
     public MainWindowViewModel(
         IBatteryMonitorService batteryService,
@@ -87,11 +82,11 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Apply initial language setting
         ApplyLanguageSetting(Settings.Language);
 
-        _debounceTimer = new Timer(500)
+        _settingsSaveDebounceTimer = new Timer(500)
         {
             AutoReset = false
         };
-        _debounceTimer.Elapsed += (s, e) => Dispatcher.UIThread.Post(() => _settingsService.SaveSettings(Settings.ToSettingsData()));
+        _settingsSaveDebounceTimer.Elapsed += OnSettingsSaveDebounceTimerElapsed;
 
         _batteryService.BatteryInfoChanged += OnBatteryInfoChanged;
         _ = Task.Run(async () =>
@@ -118,6 +113,12 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         });
     }
 
+    private async void OnSettingsSaveDebounceTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        var settings = await Dispatcher.UIThread.InvokeAsync(() => Settings.ToSettingsData());
+        await _settingsService.SaveSettingsAsync(settings);
+    }
+
     private void LocalizationChanged(object? sender, PropertyChangedEventArgs e)
     {
         if (e.PropertyName == nameof(LocalizationService.CurrentCulture))
@@ -129,10 +130,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Settings.UpdateFrequencySeconds))
-        {
-        }
-        else if (e.PropertyName == nameof(Settings.Theme))
+        if (e.PropertyName == nameof(Settings.Theme))
         {
             // Apply theme change immediately
             ApplyThemeSetting(Settings.Theme);
@@ -143,8 +141,8 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             ApplyLanguageSetting(Settings.Language);
         }
         // Debounced auto-save settings on change
-        _debounceTimer.Stop();
-        _debounceTimer.Start();
+        _settingsSaveDebounceTimer.Stop();
+        _settingsSaveDebounceTimer.Start();
     }
 
     private async void OnBatteryInfoChanged(object? sender, BatteryInfo batteryInfo)
@@ -228,8 +226,8 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         {
             if (disposing)
             {
-                _debounceTimer.Stop();
-                _debounceTimer.Dispose();
+                _settingsSaveDebounceTimer.Stop();
+                _settingsSaveDebounceTimer.Dispose();
                 if (Application.Current != null)
                 {
                     Application.Current.ActualThemeVariantChanged -= OnThemeVariantChanged;
@@ -237,6 +235,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
                 _batteryService.BatteryInfoChanged -= OnBatteryInfoChanged;
                 Settings.PropertyChanged -= Settings_PropertyChanged;
                 LocalizationService.Instance.PropertyChanged -= LocalizationChanged;
+                _settingsSaveDebounceTimer.Elapsed -= OnSettingsSaveDebounceTimerElapsed;
             }
 
             disposedValue = true;

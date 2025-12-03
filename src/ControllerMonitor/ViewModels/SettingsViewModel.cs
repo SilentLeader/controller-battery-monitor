@@ -19,13 +19,7 @@ public partial class SettingsViewModel : ObservableObject
         StartMinimized = _data.StartMinimized;
         MinimizeToTray = _data.MinimizeToTray;
         UpdateFrequencySeconds = _data.UpdateFrequencySeconds;
-        HideTrayIconWhenDisconnected = _data.HideTrayIconWhenDisconnected;
-        // Workaround for Avalonia bug #19332 on Linux
-        // Always show tray icon on Linux to avoid DBus disposal race condition
-        if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-        {
-            HideTrayIconWhenDisconnected = false;
-        }
+        HideTrayIconWhenDisconnected = _data.HideTrayIconWhenDisconnected;        
         NotifyOnControllerConnected = _data.NotifyOnControllerConnected;
         NotifyOnControllerDisconnected = _data.NotifyOnControllerDisconnected;
         NotifyOnBatteryLow = _data.NotifyOnBatteryLow;
