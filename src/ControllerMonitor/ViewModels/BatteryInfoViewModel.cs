@@ -1,4 +1,6 @@
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using ControllerMonitor.Services;
 using ControllerMonitor.ValueObjects;
 
 namespace ControllerMonitor.ViewModels;
@@ -20,6 +22,8 @@ public partial class BatteryInfoViewModel : ObservableObject
     [ObservableProperty]
     private string? modelName;
 
+    public CultureInfo CultureInfo => LocalizationService.Instance.CurrentCulture;
+
     public ConnectionStatus Status =>
         !IsConnected ? ConnectionStatus.Disconnected :
         IsCharging ? ConnectionStatus.Charging :
@@ -33,5 +37,15 @@ public partial class BatteryInfoViewModel : ObservableObject
     partial void OnIsConnectedChanged(bool value)
     {
         OnPropertyChanged(nameof(Status));
+    }
+
+    public string GetControllerDisplayName()
+    {
+        if (IsConnected != true)
+            return "Unknown Controller";
+            
+        return !string.IsNullOrWhiteSpace(ModelName)
+            ? ModelName
+            : "Unknown Controller";
     }
 }

@@ -1,10 +1,9 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
-using System;
+using Avalonia.Controls.ApplicationLifetimes;
 using ControllerMonitor.Interfaces;
 using ControllerMonitor.ViewModels;
-using Avalonia.Controls.ApplicationLifetimes;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ControllerMonitor.Windows;
 
@@ -14,8 +13,9 @@ public partial class MainWindow : Window
 
     private bool _isShutdown = false;
 
-    public MainWindow() : this(Program.ServiceProvider!.GetRequiredService<MainWindowViewModel>(), Program.ServiceProvider!.GetRequiredService<INotificationService>())
+    public MainWindow()
     {
+        InitializeComponent();
     }
 
     public MainWindow(MainWindowViewModel viewModel, INotificationService notificationService)
@@ -37,11 +37,46 @@ public partial class MainWindow : Window
         Height = viewModel.Settings.WindowHeight;
 
         // Validate position is within screen bounds or if not set (default -1)
-        var screens = Screens;
-        bool validPosition = viewModel.Settings.WindowX != -1 && viewModel.Settings.WindowY != -1;
+        if(!IsPositionValid(viewModel.Settings.WindowX, viewModel.Settings.WindowY))
+        {
+            // Center on primary screen
+            CenterOnPrimaryScreen();
+        }
+
+        // Handle system shutdown to allow proper logout
+        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+        {
+            desktopLifetime.ShutdownRequested += (sender, e) => _isShutdown = true;
+        }
+
+        // Attach to window events for saving position/size
+        PositionChanged += MainWindow_PositionChanged;
+        SizeChanged += MainWindow_SizeChanged;
+    }
+
+    public void PrepareForShutdown()
+    {
+        _isShutdown = true;
+    }
+
+    private void CenterOnPrimaryScreen()
+    {
+        var primary = Screens.Primary;
+        if (primary != null)
+        {
+            Position = new PixelPoint(
+                (int)(primary.Bounds.X + (primary.Bounds.Width - Width) / 2),
+                (int)(primary.Bounds.Y + (primary.Bounds.Height - Height) / 2)
+            );
+        }
+    }
+
+    private bool IsPositionValid(double windowX, double windowY)
+    {
+        bool validPosition = windowX != -1 && windowY != -1;
         if (validPosition)
         {
-            foreach (var screen in screens.All)
+            foreach (var screen in Screens.All)
             {
                 if (Position.X >= screen.Bounds.X && Position.X + Width <= screen.Bounds.X + screen.Bounds.Width &&
                     Position.Y >= screen.Bounds.Y && Position.Y + Height <= screen.Bounds.Y + screen.Bounds.Height)
@@ -55,28 +90,9 @@ public partial class MainWindow : Window
                 }
             }
         }
-        if (!validPosition)
-        {
-            // Center on primary screen
-            var primary = screens.Primary;
-            if (primary != null)
-            {
-                Position = new PixelPoint(
-                    (int)(primary.Bounds.X + (primary.Bounds.Width - Width) / 2),
-                    (int)(primary.Bounds.Y + (primary.Bounds.Height - Height) / 2)
-                );
-            }
-        }
 
-        // Handle system shutdown to allow proper logout
-        if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
-        {
-            desktopLifetime.ShutdownRequested += (sender, e) => _isShutdown = true;
-        }
-
-        // Attach to window events for saving position/size
-        PositionChanged += MainWindow_PositionChanged;
-        SizeChanged += MainWindow_SizeChanged;
+        return validPosition;
+        
     }
 
     private void MainWindow_PositionChanged(object? sender, EventArgs e)
@@ -123,10 +139,5 @@ public partial class MainWindow : Window
             e.Cancel = true;
             WindowState = WindowState.Minimized;
         }
-    }
-
-    public void PrepareForShutdown()
-    {
-        _isShutdown = true;
     }
 }

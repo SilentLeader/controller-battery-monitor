@@ -1,7 +1,10 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
+using System.Globalization;
 using Avalonia.Data;
+using Avalonia.Data.Core;
 using Avalonia.Markup.Xaml;
+using Avalonia.Markup.Xaml.MarkupExtensions;
+using Avalonia.Markup.Xaml.MarkupExtensions.CompiledBindings;
 using ControllerMonitor.Converters;
 using ControllerMonitor.Services;
 
@@ -13,16 +16,22 @@ public class LocalizeExtension(string key) : MarkupExtension
 
     private static readonly LocalizeConverter LOCALIZE_CONVERTER = new();
 
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "Binding usage here is intentional and safe; avoid linker warning for reflection-based binding.")]
+    private static readonly CompiledBindingPath CURRENTCULTURE_PATH = new CompiledBindingPathBuilder()
+            .Property(new ClrPropertyInfo(
+                nameof(LocalizationService.CurrentCulture), 
+                o => LocalizationService.Instance.CurrentCulture, 
+                null,
+                typeof(CultureInfo)),
+                PropertyInfoAccessorFactory.CreateInpcPropertyAccessor).Build();
+
     public override object ProvideValue(IServiceProvider serviceProvider)
     {   
-        return new Binding
+        return new CompiledBindingExtension(CURRENTCULTURE_PATH)
         {
             Converter = LOCALIZE_CONVERTER,
             ConverterParameter = Key,
             Source = LocalizationService.Instance,
-            Path = nameof(LocalizationService.CurrentCulture),
             Mode = BindingMode.OneWay
-        };
+        }.ProvideValue(serviceProvider);
     }
 }

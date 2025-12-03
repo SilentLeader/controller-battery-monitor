@@ -37,7 +37,7 @@ public sealed class UPowerClient(
                 return true; // Already initialized
             }
             
-            _logger.LogInformation("Initializing UPower client");
+            _logger.LogDebug("Initializing UPower client");
             
             // Try to load the native library first
             if (!await TryLoadNativeLibraryAsync(cancellationToken))
@@ -75,11 +75,13 @@ public sealed class UPowerClient(
     public async Task<IReadOnlyList<BatteryDevice>> GetDevicesAsync(CancellationToken cancellationToken = default)
     {
         if (_disposed)
+        {
             throw new ObjectDisposedException(nameof(UPowerClient));
-            
+        }
+
         if (!await EnsureInitializedAsync(cancellationToken))
         {
-            return Array.Empty<BatteryDevice>();
+            return [];
         }
         
         try

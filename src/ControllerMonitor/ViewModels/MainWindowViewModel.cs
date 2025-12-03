@@ -21,9 +21,9 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
     private readonly IBatteryMonitorService _batteryService;
     private readonly ISettingsService _settingsService;
     private readonly INotificationService _notificationService;
-    private System.Timers.Timer _debounceTimer;
+    private Timer _settingsSaveDebounceTimer;
     private BatteryLevel _previousBatteryLevel = BatteryLevel.Unknown;
-    
+
     private bool _previousIsConnected = false;
     private readonly ILogger<MainWindowViewModel>? _logger;
 
@@ -47,11 +47,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private bool disposedValue;
 
-    /// <summary>
-    /// Gets a value indicating whether the current platform is Linux
-    /// </summary>
-    public bool IsLinux => RuntimeInformation.IsOSPlatform(OSPlatform.Linux);
-
     public MainWindowViewModel(
         IBatteryMonitorService batteryService,
         SettingsViewModel settings,
@@ -72,14 +67,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         AppDescription = LocalizationService.Instance["App_Description"];
 
         // Subscribe to culture changes to update app info
-        LocalizationService.Instance.PropertyChanged += (s, e) =>
-        {
-            if (e.PropertyName == nameof(LocalizationService.CurrentCulture))
-            {
-                AppName = LocalizationService.Instance["App_Name"];
-                AppDescription = LocalizationService.Instance["App_Description"];
-            }
-        };
+        LocalizationService.Instance.PropertyChanged += LocalizationChanged;
 
         // Initialize theme variant
         if (Application.Current != null)
@@ -94,11 +82,11 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Apply initial language setting
         ApplyLanguageSetting(Settings.Language);
 
-        _debounceTimer = new Timer(500)
+        _settingsSaveDebounceTimer = new Timer(500)
         {
             AutoReset = false
         };
-        _debounceTimer.Elapsed += (s, e) => Dispatcher.UIThread.Post(() => _settingsService.SaveSettings(Settings.ToSettingsData()));
+        _settingsSaveDebounceTimer.Elapsed += OnSettingsSaveDebounceTimerElapsed;
 
         _batteryService.BatteryInfoChanged += OnBatteryInfoChanged;
         _ = Task.Run(async () =>
@@ -116,9 +104,6 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
                     ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
                     ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
                     ControllerInfo.BatteryInfo.ModelName = initialInfo.ModelName;
-
-                    // Set initial controller name with fallback logic
-                    ControllerInfo.Name = GetControllerDisplayName(initialInfo);
                 });
             }
             catch (Exception ex)
@@ -128,12 +113,24 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         });
     }
 
+    private async void OnSettingsSaveDebounceTimerElapsed(object? sender, ElapsedEventArgs e)
+    {
+        var settings = await Dispatcher.UIThread.InvokeAsync(() => Settings.ToSettingsData());
+        await _settingsService.SaveSettingsAsync(settings);
+    }
+
+    private void LocalizationChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(LocalizationService.CurrentCulture))
+        {
+            AppName = LocalizationService.Instance["App_Name"];
+            AppDescription = LocalizationService.Instance["App_Description"];
+        }
+    }
+
     private void Settings_PropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(Settings.UpdateFrequencySeconds))
-        {
-        }
-        else if (e.PropertyName == nameof(Settings.Theme))
+        if (e.PropertyName == nameof(Settings.Theme))
         {
             // Apply theme change immediately
             ApplyThemeSetting(Settings.Theme);
@@ -144,8 +141,8 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             ApplyLanguageSetting(Settings.Language);
         }
         // Debounced auto-save settings on change
-        _debounceTimer.Stop();
-        _debounceTimer.Start();
+        _settingsSaveDebounceTimer.Stop();
+        _settingsSaveDebounceTimer.Start();
     }
 
     private async void OnBatteryInfoChanged(object? sender, BatteryInfo batteryInfo)
@@ -159,20 +156,7 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Use a local reference to settings for thread-safety of lookups
         var settings = Settings;
 
-        // Check for controller connection/disconnection notifications (safe to call off UI thread because NotificationService posts to UI thread)
-        if (prevIsConnected != batteryInfo.IsConnected)
-        {
-            var controllerName = GetControllerDisplayName(batteryInfo);
-            
-            if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
-            {
-                await _notificationService.ShowSystemNotificationAsync("Controller Connected", $"{controllerName} has been connected.", expirationTime: 3);
-            }
-            else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
-            {
-                await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", $"Controller has been disconnected.", expirationTime: 3);
-            }
-        }
+        
 
         // Check for low battery notification
         if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
@@ -190,11 +174,23 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
             ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
-            ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;
-
-            // Update controller name with fallback logic
-            ControllerInfo.Name = GetControllerDisplayName(batteryInfo);
+            ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;            
         });
+
+        // Check for controller connection/disconnection notifications (safe to call off UI thread because NotificationService posts to UI thread)
+        if (prevIsConnected != batteryInfo.IsConnected)
+        {
+            var controllerName = ControllerInfo.BatteryInfo.GetControllerDisplayName();
+
+            if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
+            {
+                await _notificationService.ShowSystemNotificationAsync("Controller Connected", $"{controllerName} has been connected.", expirationTime: 3);
+            }
+            else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
+            {
+                await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", "Controller has been disconnected.", expirationTime: 3);
+            }
+        }
     }
 
     private async void OnThemeVariantChanged(object? sender, EventArgs e)
@@ -205,50 +201,41 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         }
     }
 
-    private void ApplyThemeSetting(string theme)
+    private static void ApplyThemeSetting(string theme)
     {
         if (Application.Current == null) return;
 
-        var themeVariant = theme switch
+        Application.Current.RequestedThemeVariant = theme switch
         {
             "Light" => ThemeVariant.Light,
             "Dark" => ThemeVariant.Dark,
             "Auto" => ThemeVariant.Default,
             _ => ThemeVariant.Default
         };
-
-        Application.Current.RequestedThemeVariant = themeVariant;
     }
 
-    private void ApplyLanguageSetting(string language)
+    private static void ApplyLanguageSetting(string language)
     {
         var languageCode = LocalizationService.GetLanguageCodeFromSetting(language);
         LocalizationService.Instance.SetLanguage(languageCode);
     }
-                
+
     protected virtual void Dispose(bool disposing)
     {
         if (!disposedValue)
         {
             if (disposing)
             {
-                _debounceTimer.Stop();
-                _debounceTimer.Dispose();
+                _settingsSaveDebounceTimer.Stop();
+                _settingsSaveDebounceTimer.Dispose();
                 if (Application.Current != null)
                 {
                     Application.Current.ActualThemeVariantChanged -= OnThemeVariantChanged;
                 }
-                _ = Task.Run(() =>
-                {
-                    try
-                    {
-                        _batteryService.BatteryInfoChanged -= OnBatteryInfoChanged;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger?.LogError(ex, "Failed to stop monitoring");
-                    }
-                });
+                _batteryService.BatteryInfoChanged -= OnBatteryInfoChanged;
+                Settings.PropertyChanged -= Settings_PropertyChanged;
+                LocalizationService.Instance.PropertyChanged -= LocalizationChanged;
+                _settingsSaveDebounceTimer.Elapsed -= OnSettingsSaveDebounceTimerElapsed;
             }
 
             disposedValue = true;
@@ -260,15 +247,5 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
         // Do not change this code. Put cleanup code in 'Dispose(bool disposing)' method
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
-    }
-
-    private static string GetControllerDisplayName(BatteryInfo batteryInfo)
-    {
-        if (batteryInfo?.IsConnected != true)
-            return LocalizationService.Instance["Controller_Unknown"];
-
-        return !string.IsNullOrWhiteSpace(batteryInfo.ModelName)
-            ? batteryInfo.ModelName
-            : LocalizationService.Instance["Controller_Unknown"];
     }
 }

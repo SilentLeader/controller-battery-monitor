@@ -1,6 +1,7 @@
 using Avalonia.Data.Converters;
 using ControllerMonitor.Services;
 using ControllerMonitor.ValueObjects;
+using ControllerMonitor.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.Globalization;
@@ -13,22 +14,26 @@ public class BatteryInfoToTooltipConverter : IMultiValueConverter
     {
         var loc = LocalizationService.Instance;
 
-        if (values.Count < 2) return loc["App_Name"];
-
-        var level = values[0] as BatteryLevel? ?? BatteryLevel.Unknown;
-        var status = values[1] as ConnectionStatus? ?? ConnectionStatus.Disconnected;
-        var modelName = values.Count > 2 ? values[2] as string : null;
-
-        // Check if we have hideTrayIconWhenDisconnected setting as 4th parameter
-        var hideTrayIconWhenDisconnected = values.Count > 3 ? values[3] as bool? ?? false : false;
-
-        // If controller is disconnected and we should hide tray icon, return default tooltip
-        if (status == ConnectionStatus.Disconnected && hideTrayIconWhenDisconnected)
+        if (values.Count < 2) 
         {
             return loc["App_Name"];
         }
 
-        string statusText = status switch
+        if (values[0] is not BatteryInfoViewModel batteryInfo) 
+        {
+            return loc["App_Name"];
+        }
+
+        // Check if we have hideTrayIconWhenDisconnected setting as 4th parameter
+        var hideTrayIconWhenDisconnected = values.Count > 4 && (values[4] as bool? ?? false);
+
+        // If controller is disconnected and we should hide tray icon, return default tooltip
+        if (batteryInfo.Status == ConnectionStatus.Disconnected && hideTrayIconWhenDisconnected)
+        {
+            return loc["App_Name"];
+        }
+
+        string statusText = batteryInfo.Status switch
         {
             ConnectionStatus.Disconnected => loc["ConnectionStatus_Disconnected"],
             ConnectionStatus.Connected => loc["ConnectionStatus_Connected"],
@@ -36,7 +41,7 @@ public class BatteryInfoToTooltipConverter : IMultiValueConverter
             _ => loc["ConnectionStatus_Unknown"]
         };
 
-        string levelText = level switch
+        string levelText = batteryInfo.Level switch
         {
             BatteryLevel.Unknown => loc["BatteryLevel_Unknown"],
             BatteryLevel.Empty => loc["BatteryLevel_Empty"],
@@ -47,10 +52,14 @@ public class BatteryInfoToTooltipConverter : IMultiValueConverter
             _ => loc["BatteryLevel_Unknown"]
         };
 
+        var modelName = batteryInfo.GetControllerDisplayName();
+
         string controllerName = !string.IsNullOrWhiteSpace(modelName) ? modelName : loc["Controller_Unknown"];
 
-        return status == ConnectionStatus.Disconnected
+        return batteryInfo.Status == ConnectionStatus.Disconnected
             ? loc["Controller_Disconnected"]
             : string.Format(loc["Controller_TooltipFormat"], controllerName, levelText, statusText);
     }
+
+    
 }

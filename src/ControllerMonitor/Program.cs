@@ -25,25 +25,19 @@ static class Program
 {
     private const string LogLevelParamName = "--log-level=";
 
-    public static IServiceProvider? ServiceProvider { get; private set; }
-
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
     public static int Main(string[] args)
     {
         // Configure Serilog
-        var loggerconfig = new LoggerConfiguration()
-            .WriteTo.Console();
-        SetLogLevel(args, loggerconfig);
-
-        Log.Logger = loggerconfig.CreateLogger();
+        Log.Logger = BuildLogger(args);
 
         // Set up dependency injection
-        ConfigureServices();
+        var serviceProvider = ConfigureServices();
         try
         {
-            using (var singleInstanceService = ServiceProvider!.GetRequiredService<SingleInstanceService>())
+            using (var singleInstanceService = serviceProvider.GetRequiredService<SingleInstanceService>())
             {
                 if (!singleInstanceService.TryAcquireSingleInstance())
                 {
@@ -52,13 +46,16 @@ static class Program
                     return 2;
                 }
 
-                var settingsService = ServiceProvider!.GetRequiredService<ISettingsService>();
+                // Load settings
+                var settingsService = serviceProvider.GetRequiredService<ISettingsService>();
                 settingsService.LoadSettings();
-                var batteryMonitorService = ServiceProvider!.GetRequiredService<IBatteryMonitorService>();
+
+                // Initialize controller monitoring
+                var batteryMonitorService = serviceProvider.GetRequiredService<IBatteryMonitorService>();
                 batteryMonitorService.StartMonitoring();
 
                 // This is the first instance, proceed with the application
-                BuildAvaloniaApp()
+                BuildAvaloniaApp(serviceProvider)
                     .StartWithClassicDesktopLifetime(args);
             }
         }
@@ -71,15 +68,21 @@ static class Program
         return 0;
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    /// <summary>
+    /// Avalonia configuration, don't remove; also used by visual designer.
+    /// </summary>
+    /// <param name="serviceProvider">IServiceProvider with null handler for visual designer</param>
+    public static AppBuilder BuildAvaloniaApp(IServiceProvider? serviceProvider = null)
+        => AppBuilder.Configure(() => (serviceProvider ?? ConfigureServices()).GetRequiredService<App>())
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
 
-    private static void SetLogLevel(string[] args, LoggerConfiguration loggerconfig)
+    private static Serilog.Core.Logger BuildLogger(string[] args)
     {
+        var loggerConfig = new LoggerConfiguration()
+            .WriteTo.Console();
+        
         if (args.Length > 0 && args.Any(x => x.StartsWith(LogLevelParamName, StringComparison.InvariantCultureIgnoreCase)))
         {
             var logLevelParam = args.First(x => x.StartsWith(LogLevelParamName, StringComparison.InvariantCultureIgnoreCase));
@@ -87,28 +90,30 @@ static class Program
             switch (logLevel.ToLower())
             {
                 case "verbose":
-                    loggerconfig.MinimumLevel.Verbose();
+                    loggerConfig.MinimumLevel.Verbose();
                     break;
                 case "debug":
-                    loggerconfig.MinimumLevel.Debug();
+                    loggerConfig.MinimumLevel.Debug();
                     break;
                 case "warning":
-                    loggerconfig.MinimumLevel.Warning();
+                    loggerConfig.MinimumLevel.Warning();
                     break;
                 case "error":
-                    loggerconfig.MinimumLevel.Error();
+                    loggerConfig.MinimumLevel.Error();
                     break;
                 case "fatal":
-                    loggerconfig.MinimumLevel.Fatal();
+                    loggerConfig.MinimumLevel.Fatal();
                     break;
                 default:
-                    loggerconfig.MinimumLevel.Information();
+                    loggerConfig.MinimumLevel.Information();
                     break;
             }
         }
+
+        return loggerConfig.CreateLogger();
     }
 
-    private static void ConfigureServices()
+    private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
         services.AddLogging(loggingBuilder =>
@@ -143,8 +148,9 @@ static class Program
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
         services.AddSingleton<AppViewModel>();
+        services.AddSingleton<App>();
 
-        ServiceProvider = services.BuildServiceProvider();
+        return services.BuildServiceProvider();
     }
 
 

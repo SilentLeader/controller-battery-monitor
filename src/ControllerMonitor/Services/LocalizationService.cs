@@ -7,11 +7,11 @@ namespace ControllerMonitor.Services;
 
 public class LocalizationService : INotifyPropertyChanged
 {
-    private static LocalizationService? _instance;
     private readonly ResourceManager _resourceManager;
     private CultureInfo _currentCulture;
+    private static readonly Lazy<LocalizationService> _lazyInstance = new(() => new LocalizationService());
 
-    public static LocalizationService Instance => _instance ??= new LocalizationService();
+    public static LocalizationService Instance => _lazyInstance.Value;
 
     public event PropertyChangedEventHandler? PropertyChanged;
 

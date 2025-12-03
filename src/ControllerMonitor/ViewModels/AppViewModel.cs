@@ -16,7 +16,7 @@ public partial class AppViewModel : ObservableObject, IDisposable
     private ControllerInfoViewModel controllerInfo = new();
 
     [ObservableProperty]
-    private SettingsViewModel _settings;
+    private SettingsViewModel settings;
 
     [ObservableProperty]
     private ThemeVariant? themeVariant;
@@ -33,7 +33,7 @@ public partial class AppViewModel : ObservableObject, IDisposable
         ILogger<AppViewModel> logger)
     {
         _batteryService = batteryService;
-        _settings = settings;
+        Settings = settings;
         _settingsService = settingsService;
         _logger = logger;
         if (Application.Current != null)
@@ -52,7 +52,7 @@ public partial class AppViewModel : ObservableObject, IDisposable
     {
         try
             {
-                var initialInfo = await _batteryService.GetBatteryInfoAsync();
+                var initialInfo = await _batteryService.GetBatteryInfoAsync().ConfigureAwait(true);
                 await Dispatcher.UIThread.InvokeAsync(() =>
                 {
                     ControllerInfo.BatteryInfo.Level = initialInfo.Level;
@@ -60,9 +60,6 @@ public partial class AppViewModel : ObservableObject, IDisposable
                     ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
                     ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
                     ControllerInfo.BatteryInfo.ModelName = initialInfo.ModelName;
-
-                    // Set initial controller name with fallback logic
-                    ControllerInfo.Name = GetControllerDisplayName(initialInfo);
                 });
             }
             catch (Exception ex)
@@ -108,9 +105,6 @@ public partial class AppViewModel : ObservableObject, IDisposable
             ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
             ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
             ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;
-
-            // Set initial controller name with fallback logic
-            ControllerInfo.Name = GetControllerDisplayName(batteryInfo);
         });
     }
 
@@ -127,13 +121,4 @@ public partial class AppViewModel : ObservableObject, IDisposable
         }
     }
     
-    private static string GetControllerDisplayName(BatteryInfo batteryInfo)
-    {
-        if (batteryInfo?.IsConnected != true)
-            return "Unknown Controller";
-            
-        return !string.IsNullOrWhiteSpace(batteryInfo.ModelName)
-            ? batteryInfo.ModelName
-            : "Unknown Controller";
-    }
 }

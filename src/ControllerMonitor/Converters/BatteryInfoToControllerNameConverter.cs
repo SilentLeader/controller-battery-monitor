@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Globalization;
 using Avalonia.Data.Converters;
 using ControllerMonitor.Services;
-using ControllerMonitor.ViewModels;
 
 namespace ControllerMonitor.Converters
 {
@@ -11,14 +10,23 @@ namespace ControllerMonitor.Converters
     {
         public object? Convert(IList<object?> values, Type targetType, object? parameter, CultureInfo culture)
         {
-            if (values[0] is not BatteryInfoViewModel batteryInfo)
-                return values[0]?.ToString() ?? string.Empty;
+            if (values.Count < 2 )
+            {
+                return string.Empty;
+            }
 
-            if (batteryInfo?.IsConnected != true)
+            if(values[0] is not bool isConnected)
+            {
+                return string.Empty;
+            }
+
+            var modelName = values[1]?.ToString();
+
+            if (isConnected != true)
                 return LocalizationService.Instance["Controller_Unknown"];
 
-            return !string.IsNullOrWhiteSpace(batteryInfo.ModelName)
-                ? batteryInfo.ModelName
+            return !string.IsNullOrWhiteSpace(modelName)
+                ? modelName
                 : LocalizationService.Instance["Controller_Unknown"];
         }
     }
