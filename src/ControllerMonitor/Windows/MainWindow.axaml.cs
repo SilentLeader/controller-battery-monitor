@@ -1,10 +1,9 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
-using System;
+using Avalonia.Controls.ApplicationLifetimes;
 using ControllerMonitor.Interfaces;
 using ControllerMonitor.ViewModels;
-using Avalonia.Controls.ApplicationLifetimes;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace ControllerMonitor.Windows;
 
@@ -14,8 +13,9 @@ public partial class MainWindow : Window
 
     private bool _isShutdown = false;
 
-    public MainWindow() : this(Program.ServiceProvider.GetRequiredService<MainWindowViewModel>(), Program.ServiceProvider.GetRequiredService<INotificationService>())
+    public MainWindow()
     {
+        InitializeComponent();
     }
 
     public MainWindow(MainWindowViewModel viewModel, INotificationService notificationService)

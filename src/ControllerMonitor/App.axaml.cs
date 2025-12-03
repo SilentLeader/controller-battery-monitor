@@ -10,11 +10,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace ControllerMonitor
 {
-    public partial class App : Application
+    public partial class App(IServiceProvider serviceProvider) : Application()
     {   
         private AppViewModel? _viewModel;
 
         private MainWindow? _mainWindow;
+        private readonly IServiceProvider _serviceProvider = serviceProvider;
 
         public override void Initialize()
         {
@@ -26,13 +27,12 @@ namespace ControllerMonitor
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
                 // Resolve services from DI container
-                _mainWindow = Program.ServiceProvider.GetRequiredService<MainWindow>();
-                _viewModel = Program.ServiceProvider.GetRequiredService<AppViewModel>();
-                var singleInstanceService = Program.ServiceProvider.GetRequiredService<SingleInstanceService>();
-
+                _viewModel = _serviceProvider.GetRequiredService<AppViewModel>();
+                _mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
                 desktop.MainWindow = _mainWindow;
 
                 // Set the MainWindow in the single instance service for window activation
+                var singleInstanceService = _serviceProvider.GetRequiredService<SingleInstanceService>();
                 singleInstanceService.SetMainWindow(_mainWindow);
 
                 // Set DataContext at Application level for bindings to work

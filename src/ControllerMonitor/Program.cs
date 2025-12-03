@@ -25,8 +25,6 @@ static class Program
 {
     private const string LogLevelParamName = "--log-level=";
 
-    public static IServiceProvider ServiceProvider { get; private set; } = null!;
-
     // Initialization code. Don't use any Avalonia, third-party APIs or any
     // SynchronizationContext-reliant code before AppMain is called: things aren't initialized
     // yet and stuff might break.
@@ -36,10 +34,10 @@ static class Program
         Log.Logger = BuildLogger(args);
 
         // Set up dependency injection
-        ConfigureServices();
+        var serviceProvider = ConfigureServices();
         try
         {
-            using (var singleInstanceService = ServiceProvider.GetRequiredService<SingleInstanceService>())
+            using (var singleInstanceService = serviceProvider.GetRequiredService<SingleInstanceService>())
             {
                 if (!singleInstanceService.TryAcquireSingleInstance())
                 {
@@ -48,13 +46,13 @@ static class Program
                     return 2;
                 }
 
-                var settingsService = ServiceProvider.GetRequiredService<ISettingsService>();
+                var settingsService = serviceProvider.GetRequiredService<ISettingsService>();
                 settingsService.LoadSettings();
-                var batteryMonitorService = ServiceProvider.GetRequiredService<IBatteryMonitorService>();
+                var batteryMonitorService = serviceProvider.GetRequiredService<IBatteryMonitorService>();
                 batteryMonitorService.StartMonitoring();
 
                 // This is the first instance, proceed with the application
-                BuildAvaloniaApp()
+                BuildAvaloniaApp(serviceProvider)
                     .StartWithClassicDesktopLifetime(args);
             }
         }
@@ -68,8 +66,8 @@ static class Program
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp()
-        => AppBuilder.Configure<App>()
+    public static AppBuilder BuildAvaloniaApp(IServiceProvider serviceProvider)
+        => AppBuilder.Configure(() => serviceProvider.GetRequiredService<App>())
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();
@@ -109,7 +107,7 @@ static class Program
         return loggerConfig.CreateLogger();
     }
 
-    private static void ConfigureServices()
+    private static ServiceProvider ConfigureServices()
     {
         var services = new ServiceCollection();
         services.AddLogging(loggingBuilder =>
@@ -144,8 +142,9 @@ static class Program
         services.AddSingleton<MainWindowViewModel>();
         services.AddSingleton<MainWindow>();
         services.AddSingleton<AppViewModel>();
+        services.AddSingleton<App>();
 
-        ServiceProvider = services.BuildServiceProvider();
+        return services.BuildServiceProvider();
     }
 
 
