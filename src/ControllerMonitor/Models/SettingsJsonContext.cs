@@ -1,7 +1,6 @@
 using System.Text.Json.Serialization;
-using ControllerMonitor.Models;
 
-namespace ControllerMonitor.Services;
+namespace ControllerMonitor.Models;
 
 [JsonSerializable(typeof(Settings))]
 internal partial class SettingsJsonContext : JsonSerializerContext
