@@ -1,4 +1,6 @@
+using System.Globalization;
 using CommunityToolkit.Mvvm.ComponentModel;
+using ControllerMonitor.Services;
 using ControllerMonitor.ValueObjects;
 
 namespace ControllerMonitor.ViewModels;
@@ -19,6 +21,8 @@ public partial class BatteryInfoViewModel : ObservableObject
 
     [ObservableProperty]
     private string? modelName;
+
+    public CultureInfo CultureInfo => LocalizationService.Instance.CurrentCulture;
 
     public ConnectionStatus Status =>
         !IsConnected ? ConnectionStatus.Disconnected :

@@ -46,8 +46,11 @@ static class Program
                     return 2;
                 }
 
+                // Load settings
                 var settingsService = serviceProvider.GetRequiredService<ISettingsService>();
                 settingsService.LoadSettings();
+
+                // Initialize controller monitoring
                 var batteryMonitorService = serviceProvider.GetRequiredService<IBatteryMonitorService>();
                 batteryMonitorService.StartMonitoring();
 
@@ -65,9 +68,12 @@ static class Program
         return 0;
     }
 
-    // Avalonia configuration, don't remove; also used by visual designer.
-    public static AppBuilder BuildAvaloniaApp(IServiceProvider serviceProvider)
-        => AppBuilder.Configure(() => serviceProvider.GetRequiredService<App>())
+    /// <summary>
+    /// Avalonia configuration, don't remove; also used by visual designer.
+    /// </summary>
+    /// <param name="serviceProvider">IServiceProvider with null handler for visual designer</param>
+    public static AppBuilder BuildAvaloniaApp(IServiceProvider? serviceProvider = null)
+        => AppBuilder.Configure(() => (serviceProvider ?? ConfigureServices()).GetRequiredService<App>())
             .UsePlatformDetect()
             .WithInterFont()
             .LogToTrace();

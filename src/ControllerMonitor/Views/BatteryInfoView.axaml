@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:ControllerMonitor.ViewModels"
+        xmlns:ext="clr-namespace:ControllerMonitor.Extensions"
+        mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="400"
+        x:Class="ControllerMonitor.Views.BatteryInfoView"
+        x:DataType="vm:BatteryInfoViewModel">
+
+    <StackPanel>
+        <TextBlock FontSize="18" FontWeight="Bold" >
+            <TextBlock.Text>
+                <MultiBinding Converter="{StaticResource BatteryInfoToControllerNameConverter}">
+                    <Binding Path="IsConnected"/>
+                    <Binding Path="ModelName" />
+                    <Binding Path="CultureInfo" />
+                </MultiBinding>
+            </TextBlock.Text>
+        </TextBlock>
+
+        <TextBlock Text="{ext:Localize BatteryLevel}" Margin="0,10,0,0" />
+        <TextBlock FontSize="16" >
+            <TextBlock.Text>
+                <MultiBinding Converter="{StaticResource BatteryLevelToLocalizedStringConverter}">
+                    <Binding Path="Level" />
+                    <Binding Path="CultureInfo" />
+                </MultiBinding>
+            </TextBlock.Text>
+        </TextBlock>
+
+        <StackPanel IsVisible="{Binding Capacity, Converter={StaticResource CapacityToVisibilityConverter}}">
+            <TextBlock Text="{ext:Localize Capacity}" Margin="0,10,0,0" />
+            <StackPanel Orientation="Horizontal">
+                <TextBlock Text="{Binding Capacity}" FontSize="16" />
+                <TextBlock Text=" %" FontSize="16" />
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock Text="{ext:Localize Status}" Margin="0,10,0,0" />
+        <TextBlock FontSize="16" >
+            <TextBlock.Text>
+                <MultiBinding Converter="{StaticResource ConnectionStatusToLocalizedStringConverter}">
+                    <Binding Path="Status" />
+                    <Binding Path="CultureInfo" />
+                </MultiBinding>
+            </TextBlock.Text>
+        </TextBlock>
+    </StackPanel>
+        
+</UserControl>
