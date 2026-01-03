@@ -41,12 +41,12 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Publish Windows
-        run: dotnet publish src/ControllerMonitor/ControllerMonitor.csproj -c Release -r win-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None
+        run: dotnet publish src/ControllerMonitor/ControllerMonitor.csproj -c Release -r win-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None -o publish/windows
       - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: ControllerMonitor-Windows-${{ needs.version.outputs.semver }}
-          path: src/ControllerMonitor/bin/Release/net9.0-windows10.0.17763.0/win-x64/publish/
+          path: publish/windows
 
   build-linux:
     needs: version
@@ -60,7 +60,7 @@ jobs:
         with:
           dotnet-version: '10.0.x'
       - name: Publish Linux
-        run: dotnet publish src/ControllerMonitor/ControllerMonitor.csproj -c Release -r linux-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None
+        run: dotnet publish src/ControllerMonitor/ControllerMonitor.csproj -c Release -r linux-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None -o publish/linux
       - name: Install fpm
         run: |
           sudo apt-get update
@@ -74,10 +74,10 @@ jobs:
           mkdir -p staging/usr/share/applications
 
           # Copy executable to /usr/bin
-          cp src/ControllerMonitor/bin/Release/net9.0/linux-x64/publish/ControllerMonitor staging/usr/bin/
+          cp publish/linux/ControllerMonitor staging/usr/bin/
 
           # Copy shared libraries to /usr/lib/appname
-          cp src/ControllerMonitor/bin/Release/net9.0/linux-x64/publish/*.so staging/usr/lib/controller-monitor/
+          cp publish/linux/*.so staging/usr/lib/controller-monitor/
 
           # Create wrapper script that sets LD_LIBRARY_PATH
           cat > staging/usr/bin/controller-monitor << 'EOF'
@@ -123,7 +123,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ControllerMonitor-Linux-${{ needs.version.outputs.semver }}
-          path: src/ControllerMonitor/bin/Release/net9.0/linux-x64/publish/
+          path: publish/linux/
       - name: Upload deb package
         uses: actions/upload-artifact@v4
         with:
