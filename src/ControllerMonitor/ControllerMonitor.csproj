@@ -10,7 +10,7 @@
 	
 	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-x86' OR '$(RuntimeIdentifier)' == 'win-arm64' OR '$([MSBuild]::IsOSPlatform(Windows))' == 'true'">
 		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
-		<TargetFramework>net9.0-windows10.0.17763.0</TargetFramework>
+		<TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
 		<ApplicationIcon>Assets/icons/app.ico</ApplicationIcon>
 		<PublishAot>false</PublishAot>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
@@ -20,18 +20,18 @@
 
 	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64' OR '$(RuntimeIdentifier)' == 'linux-arm64' OR '$([MSBuild]::IsOSPlatform(Linux))' == 'true'">
 		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
-		<TargetFramework>net9.0</TargetFramework>
+		<TargetFramework>net10.0</TargetFramework>
 		<PublishAot>true</PublishAot>
 		<PublishSingleFile>true</PublishSingleFile>
 	</PropertyGroup>
 
 	<ItemGroup>
-	    <PackageReference Include="Avalonia" Version="11.3.9" />
-	    <PackageReference Include="Avalonia.Desktop" Version="11.3.9" />
-	    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.9" />
-	    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.9" />
+	    <PackageReference Include="Avalonia" Version="11.3.10" />
+	    <PackageReference Include="Avalonia.Desktop" Version="11.3.10" />
+	    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.3.10" />
+	    <PackageReference Include="Avalonia.Fonts.Inter" Version="11.3.10" />
 	    <!--Condition below is needed to remove Avalonia.Diagnostics package from build output in Release configuration.-->
-	    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.9">
+	    <PackageReference Include="Avalonia.Diagnostics" Version="11.3.10">
 	        <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
 	        <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
 	    </PackageReference>
@@ -39,8 +39,8 @@
 	    <PackageReference Include="Serilog" Version="4.3.0" />
 	    <PackageReference Include="Serilog.Sinks.Console" Version="6.1.1" />
 	    <PackageReference Include="Serilog.Extensions.Logging" Version="10.0.0" />
-	    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.0" />
-	    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.0" />
+	    <PackageReference Include="Microsoft.Extensions.Logging" Version="10.0.1" />
+	    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.1" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64' OR '$(RuntimeIdentifier)' == 'linux-arm64' OR '$([MSBuild]::IsOSPlatform(Linux))' == 'true'">

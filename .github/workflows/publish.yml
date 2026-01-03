@@ -39,7 +39,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
       - name: Publish Windows
         run: dotnet publish src/ControllerMonitor/ControllerMonitor.csproj -c Release -r win-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None
       - name: Upload Windows artifact
@@ -58,7 +58,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '9.0.x'
+          dotnet-version: '10.0.x'
       - name: Publish Linux
         run: dotnet publish src/ControllerMonitor/ControllerMonitor.csproj -c Release -r linux-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None
       - name: Install fpm
