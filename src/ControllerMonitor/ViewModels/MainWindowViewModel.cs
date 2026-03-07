@@ -147,49 +147,52 @@ public partial class MainWindowViewModel : ObservableObject, IDisposable
 
     private async void OnBatteryInfoChanged(object? sender, BatteryInfo batteryInfo)
     {
-        if (batteryInfo == null) return;
-
-        // Capture previous state locally to make notification decisions off the UI thread
-        var prevIsConnected = _previousIsConnected;
-        var prevBatteryLevel = _previousBatteryLevel;
-
-        // Use a local reference to settings for thread-safety of lookups
-        var settings = Settings;
-
-        
-
-        // Check for low battery notification
-        if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
+        try
         {
-            await _notificationService.ShowSystemNotificationAsync("Low Battery", "Controller battery is low.", NotificationPriority.High, expirationTime: 10);
+            // Capture previous state locally to make notification decisions off the UI thread
+            var prevIsConnected = _previousIsConnected;
+            var prevBatteryLevel = _previousBatteryLevel;
+            var settings = Settings;
+
+            // Check for low battery notification
+            if (prevBatteryLevel != BatteryLevel.Low && batteryInfo.Level == BatteryLevel.Low && !batteryInfo.IsCharging && settings.NotifyOnBatteryLow)
+            {
+                await _notificationService.ShowSystemNotificationAsync("Low Battery", "Controller battery is low.", NotificationPriority.High, expirationTime: 10);
+            }
+
+            string controllerName = "Unknown Controller";
+
+            // Update previous state and view-model properties on the UI thread to avoid affinity violations
+            await Dispatcher.UIThread.InvokeAsync(() =>
+            {
+                _previousBatteryLevel = batteryInfo.Level;
+                _previousIsConnected = batteryInfo.IsConnected;
+
+                ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
+                ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
+                ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
+                ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
+                ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;
+
+                controllerName = ControllerInfo.BatteryInfo.GetControllerDisplayName();
+            });
+
+            // Check for controller connection/disconnection notifications
+            if (prevIsConnected != batteryInfo.IsConnected)
+            {
+                if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
+                {
+                    await _notificationService.ShowSystemNotificationAsync("Controller Connected", $"{controllerName} has been connected.", expirationTime: 3);
+                }
+                else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
+                {
+                    await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", "Controller has been disconnected.", expirationTime: 3);
+                }
+            }
         }
-
-        // Update previous state and view-model properties on the UI thread to avoid affinity violations
-        await Dispatcher.UIThread.InvokeAsync(() =>
+        catch (Exception ex)
         {
-            _previousBatteryLevel = batteryInfo.Level;
-            _previousIsConnected = batteryInfo.IsConnected;
-
-            ControllerInfo.BatteryInfo.Level = batteryInfo.Level;
-            ControllerInfo.BatteryInfo.Capacity = batteryInfo.Capacity;
-            ControllerInfo.BatteryInfo.IsCharging = batteryInfo.IsCharging;
-            ControllerInfo.BatteryInfo.IsConnected = batteryInfo.IsConnected;
-            ControllerInfo.BatteryInfo.ModelName = batteryInfo.ModelName;            
-        });
-
-        // Check for controller connection/disconnection notifications (safe to call off UI thread because NotificationService posts to UI thread)
-        if (prevIsConnected != batteryInfo.IsConnected)
-        {
-            var controllerName = ControllerInfo.BatteryInfo.GetControllerDisplayName();
-
-            if (batteryInfo.IsConnected && settings.NotifyOnControllerConnected)
-            {
-                await _notificationService.ShowSystemNotificationAsync("Controller Connected", $"{controllerName} has been connected.", expirationTime: 3);
-            }
-            else if (!batteryInfo.IsConnected && settings.NotifyOnControllerDisconnected)
-            {
-                await _notificationService.ShowSystemNotificationAsync("Controller Disconnected", "Controller has been disconnected.", expirationTime: 3);
-            }
+            _logger?.LogError(ex, "Error processing battery info change");
         }
     }
 

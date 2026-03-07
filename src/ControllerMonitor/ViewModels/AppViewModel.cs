@@ -51,21 +51,21 @@ public partial class AppViewModel : ObservableObject, IDisposable
     private async Task InitializeBatteryInfoAsync()
     {
         try
+        {
+            var initialInfo = await _batteryService.GetBatteryInfoAsync().ConfigureAwait(true);
+            await Dispatcher.UIThread.InvokeAsync(() =>
             {
-                var initialInfo = await _batteryService.GetBatteryInfoAsync().ConfigureAwait(true);
-                await Dispatcher.UIThread.InvokeAsync(() =>
-                {
-                    ControllerInfo.BatteryInfo.Level = initialInfo.Level;
-                    ControllerInfo.BatteryInfo.Capacity = initialInfo.Capacity;
-                    ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
-                    ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
-                    ControllerInfo.BatteryInfo.ModelName = initialInfo.ModelName;
-                });
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Failed initialize battery info");
-            }
+                ControllerInfo.BatteryInfo.Level = initialInfo.Level;
+                ControllerInfo.BatteryInfo.Capacity = initialInfo.Capacity;
+                ControllerInfo.BatteryInfo.IsCharging = initialInfo.IsCharging;
+                ControllerInfo.BatteryInfo.IsConnected = initialInfo.IsConnected;
+                ControllerInfo.BatteryInfo.ModelName = initialInfo.ModelName;
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger?.LogError(ex, "Failed initialize battery info");
+        }
     }
 
     protected virtual void Dispose(bool disposing)
@@ -95,8 +95,6 @@ public partial class AppViewModel : ObservableObject, IDisposable
 
     private async void OnBatteryInfoChanged(object? sender, BatteryInfo batteryInfo)
     {
-        if (batteryInfo == null) return;
-
         // Update previous state and view-model properties on the UI thread to avoid affinity violations
         await Dispatcher.UIThread.InvokeAsync(() =>
         {
@@ -120,5 +118,5 @@ public partial class AppViewModel : ObservableObject, IDisposable
             await Dispatcher.UIThread.InvokeAsync(() => ThemeVariant = Application.Current.ActualThemeVariant);
         }
     }
-    
+
 }

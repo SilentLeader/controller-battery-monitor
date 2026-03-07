@@ -39,6 +39,11 @@ public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDispo
 
     public void StartMonitoring()
     {
+        if (_monitoringTimer != null)
+        {
+            _monitoringTimer.Stop();
+            _monitoringTimer.Dispose();
+        }
         var settings = _settingsService.GetSettings();
         var updateFreq = settings.UpdateFrequencySeconds < 1 ? 1 : settings.UpdateFrequencySeconds;
         _updateFreq = TimeSpan.FromSeconds(updateFreq);
@@ -54,15 +59,15 @@ public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDispo
     {
         await _lockObject.WaitAsync();
         try
-        {   
-            if(!force 
-                && _lastUpdate != null 
+        {
+            if (!force
+                && _lastUpdate != null
                 && (DateTime.Now - _lastUpdate) < _updateFreq)
             {
                 return;
             }
 
-            var currentInfo = await GetBatteryInfoInternalAsync();     
+            var currentInfo = await GetBatteryInfoInternalAsync();
             if (_previousBatteryInfo != currentInfo)
             {
                 _previousBatteryInfo = currentInfo;
@@ -102,7 +107,7 @@ public abstract class BatteryMonitorServiceBase : IBatteryMonitorService, IDispo
             disposedValue = true;
         }
     }
-    
+
     private void SettingsChanged(object? sender, Settings settings)
     {
         if ((_monitoringTimer?.Interval) == (settings.UpdateFrequencySeconds * 1000))
