@@ -20,7 +20,7 @@ namespace ControllerMonitor.Platforms.Linux;
 public class BatteryMonitorLinux : BatteryMonitorServiceBase
 {
     private readonly IServiceProvider? _serviceProvider;
-    
+
 #if LINUX
     private UPowerBatteryProvider? _upowerProvider;
     private bool _upowerInitialized;
@@ -31,7 +31,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
         : base(settingsService, logger)
     {
     }
-    
+
     public BatteryMonitorLinux(ISettingsService settingsService, ILogger<IBatteryMonitorService> logger, IServiceProvider serviceProvider)
         : base(settingsService, logger)
     {
@@ -48,50 +48,50 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
         try
         {
             // Dual-tier battery detection: UPower first, then sysfs fallback
-            
+
             // Tier 1: Try UPower (primary detection mechanism)
             var upowerResult = await TryGetBatteryFromUPowerAsync();
-            if (upowerResult != null)
+            if (upowerResult.HasValue)
             {
                 _logger.LogDebug("Battery info retrieved via UPower: {Model} - {Percentage}%",
-                    upowerResult.ModelName, upowerResult.Capacity);
-                return upowerResult;
+                    upowerResult.Value.ModelName, upowerResult.Value.Capacity);
+                return upowerResult.Value;
             }
-            
+
             _logger.LogDebug("UPower detection failed, falling back to sysfs");
 
             // Tier 2: Fallback to sysfs (existing implementation)
             var sysfsResult = await GetBatteryFromSysfsAsync();
-            if (sysfsResult != null)
+            if (sysfsResult.HasValue)
             {
                 _logger.LogDebug("Battery info retrieved via sysfs: {Model} - {Percentage}%",
-                    sysfsResult.ModelName, sysfsResult.Capacity);
-                return sysfsResult;
+                    sysfsResult.Value.ModelName, sysfsResult.Value.Capacity);
+                return sysfsResult.Value;
             }
-            
+
             _logger.LogDebug("No battery devices detected via UPower or sysfs");
-            return new ();
+            return new();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Get battery info failed");
-            
+
             // Try fallback to sysfs if primary method fails
             try
             {
                 var fallbackResult = await GetBatteryFromSysfsAsync();
-                if (fallbackResult != null)
+                if (fallbackResult.HasValue)
                 {
                     _logger.LogInformation("Fallback to sysfs successful after primary method failed");
-                    return fallbackResult;
+                    return fallbackResult.Value;
                 }
             }
             catch (Exception fallbackEx)
             {
                 _logger.LogError(fallbackEx, "Fallback to sysfs also failed");
             }
-            
-            return new ();
+
+            return new();
         }
     }
 
@@ -107,29 +107,29 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             {
                 await InitializeUPowerAsync();
             }
-            
+
             if (!_upowerAvailable || _upowerProvider == null)
             {
                 return null;
             }
-            
+
             // Get all battery devices from UPower
             var devices = await _upowerProvider.GetBatteryDevicesAsync().ConfigureAwait(false);
-            
+
             // Prioritize gaming controllers
             var gamingDevice = devices.FirstOrDefault(d => d.IsGamingController);
             if (gamingDevice != null)
             {
                 return ConvertUPowerToBatteryInfo(gamingDevice);
             }
-            
+
             return null;
         }
         catch (UPowerException ex)
         {
             _logger.LogWarning(ex, "UPower battery detection failed: {Message}",
                 UPowerExceptionHelpers.GetUserFriendlyMessage(ex));
-            
+
             // Mark UPower as unavailable for this session
             _upowerAvailable = false;
             return null;
@@ -140,7 +140,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             return null;
         }
     }
-    
+
     /// <summary>
     /// Initializes the UPower provider lazily
     /// </summary>
@@ -148,17 +148,17 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
     {
         if (_upowerInitialized)
             return;
-            
+
         try
         {
             _upowerProvider = _serviceProvider?.GetService<UPowerBatteryProvider>();
-            
+
             if (_upowerProvider != null)
             {
                 _upowerAvailable = await _upowerProvider.IsAvailableAsync();
-                
+
                 if (_upowerAvailable)
-                {   
+                {
                     _logger.LogDebug("UPower integration initialized successfully");
                 }
                 else
@@ -182,7 +182,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             _upowerInitialized = true;
         }
     }
-        
+
     /// <summary>
     /// Converts UPower BatteryDevice to BatteryInfoViewModel
     /// </summary>
@@ -197,7 +197,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             ModelName = device.DisplayName
         };
     }
-    
+
     /// <summary>
     /// Converts UPower percentage to ControllerMonitor BatteryLevel
     /// </summary>
@@ -237,7 +237,7 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
     {
         try
         {
-            var deviceInfo =  await FindXboxBatteryDeviceAsync();
+            var deviceInfo = await FindXboxBatteryDeviceAsync();
             if (deviceInfo == null)
             {
                 return null;
