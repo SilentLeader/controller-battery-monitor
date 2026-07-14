@@ -18,16 +18,16 @@ jobs:
       semver: ${{ steps.gitversion.outputs.semVer }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           fetch-depth: 0
       - name: Install GitVersion
-        uses: gittools/actions/gitversion/setup@v1
+        uses: gittools/actions/gitversion/setup@v4
         with:
-          versionSpec: '5.x'
+          versionSpec: '6.x'
       - name: Determine Version
         id: gitversion
-        uses: gittools/actions/gitversion/execute@v1
+        uses: gittools/actions/gitversion/execute@v4
 
   build-windows:
     needs: version
@@ -35,15 +35,15 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
       - name: Publish Windows
         run: dotnet publish src/ControllerMonitor/ControllerMonitor.csproj -c Release -r win-x64 --self-contained -p:Version=${{ needs.version.outputs.semver }} -p:DebugType=None -o publish/windows
       - name: Upload Windows artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ControllerMonitor-Windows-${{ needs.version.outputs.semver }}
           path: publish/windows
@@ -54,9 +54,9 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Setup .NET
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: '10.0.x'
       - name: Publish Linux
@@ -120,17 +120,17 @@ jobs:
             -C staging .
           mv controller-monitor-${{ needs.version.outputs.semver }}-1-x86_64.pkg.tar.zst ControllerMonitor-Linux-${{ needs.version.outputs.semver }}.pkg.tar.zst
       - name: Upload Linux artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ControllerMonitor-Linux-${{ needs.version.outputs.semver }}
           path: publish/linux/
       - name: Upload deb package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ControllerMonitor-deb-${{ needs.version.outputs.semver }}
           path: ControllerMonitor-Linux-${{ needs.version.outputs.semver }}.deb
       - name: Upload pacman package
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: ControllerMonitor-pacman-${{ needs.version.outputs.semver }}
           path: ControllerMonitor-Linux-${{ needs.version.outputs.semver }}.pkg.tar.zst
@@ -141,24 +141,24 @@ jobs:
     if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
       - name: Download Windows artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ControllerMonitor-Windows-${{ needs.version.outputs.semver }}
           path: artifacts/windows/
       - name: Download Linux artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ControllerMonitor-Linux-${{ needs.version.outputs.semver }}
           path: artifacts/linux/
       - name: Download deb package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ControllerMonitor-deb-${{ needs.version.outputs.semver }}
           path: .
       - name: Download pacman package
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: ControllerMonitor-pacman-${{ needs.version.outputs.semver }}
           path: .
@@ -169,7 +169,7 @@ jobs:
           cd ../linux
           tar -czf ../../ControllerMonitor-Linux-${{ needs.version.outputs.semver }}.tar.gz .
       - name: Create Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
