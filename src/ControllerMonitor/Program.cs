@@ -1,4 +1,6 @@
 using Avalonia;
+using Avalonia.X11;
+using Avalonia.Win32;
 using System;
 using System.Linq;
 using ControllerMonitor.Services;
@@ -75,6 +77,8 @@ static class Program
     public static AppBuilder BuildAvaloniaApp(IServiceProvider? serviceProvider = null)
         => AppBuilder.Configure(() => (serviceProvider ?? ConfigureServices()).GetRequiredService<App>())
             .UsePlatformDetect()
+            .With(new X11PlatformOptions { RenderingMode = [X11RenderingMode.Software] })
+            .With(new Win32PlatformOptions { RenderingMode = [Win32RenderingMode.Software] })
             .WithInterFont()
             .LogToTrace();
 
