@@ -3,7 +3,7 @@ using ControllerMonitor.UPower.ValueObjects;
 namespace ControllerMonitor.UPower.Models;
 
 /// <summary>
-/// Strongly-typed model representing a UPower battery device
+/// Strongly typed model representing a UPower battery device
 /// </summary>
 public sealed record BatteryDevice
 {
@@ -70,7 +70,7 @@ public sealed record BatteryDevice
     /// <summary>
     /// Current battery level
     /// </summary>
-    public BatteryLevel? BatteryLevelCurrent { get; init; } = null;
+    public BatteryLevel? BatteryLevelCurrent { get; init; }
     
     /// <summary>
     /// Battery health percentage (0-100, where 100 is perfect health)
@@ -99,17 +99,23 @@ public sealed record BatteryDevice
     /// </summary>
     public bool IsGamingController => Type == DeviceType.GamingInput ||
                                      IsGamingControllerByName(DisplayName);
-    
+
+    private static readonly string[] GamingKeywords =
+    [
+        "xbox", "controller", "wireless controller",
+        "dualshock", "dualsense", "playstation",
+        "gamepad", "gaming", "pro controller"
+    ];
+
     private static bool IsGamingControllerByName(string name)
     {
-        var lowerName = name.ToLowerInvariant();
-        var gamingKeywords = new[]
+        foreach (var keyword in GamingKeywords)
         {
-            "xbox", "controller", "wireless controller",
-            "dualshock", "dualsense", "playstation",
-            "gamepad", "gaming", "pro controller"
-        };
-        
-        return gamingKeywords.Any(lowerName.Contains);
+            if (name.Contains(keyword, StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

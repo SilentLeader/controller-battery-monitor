@@ -6,7 +6,7 @@ namespace ControllerMonitor.UPower.Services;
 /// <summary>
 /// UPower implementation of IBatteryDataProvider
 /// </summary>
-public sealed class UPowerBatteryProvider(
+public sealed partial class UPowerBatteryProvider(
     ILogger<UPowerBatteryProvider> logger,
     UPowerClient client) : IBatteryDataProvider
 {
@@ -37,10 +37,13 @@ public sealed class UPowerBatteryProvider(
     public async Task<IReadOnlyList<BatteryDevice>> GetBatteryDevicesAsync(CancellationToken cancellationToken = default)
     {
         var devices = await _client.GetDevicesAsync(cancellationToken);
-            
-        _logger.LogDebug("Retrieved {Count} battery devices from UPower", devices.Count);
-        
+
+        LogRetrievedDevices(_logger, devices.Count);
+
         return devices;
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Retrieved {Count} battery devices from UPower")]
+    private static partial void LogRetrievedDevices(ILogger logger, int count);
 }
 

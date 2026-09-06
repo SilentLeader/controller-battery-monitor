@@ -150,7 +150,10 @@ static class Program
         // Register viewmodel and window so they can be resolved from DI
         services.AddTransient(s => new SettingsViewModel(s.GetRequiredService<ISettingsService>().GetSettings()));
         services.AddSingleton<MainWindowViewModel>();
-        services.AddSingleton<MainWindow>();
+        // Transient: the window is created on demand and closed for real when
+        // minimized to tray (see App.ShowMainWindow), so a fresh instance is needed
+        // each time it's (re)opened rather than reusing one kept alive forever.
+        services.AddTransient<MainWindow>();
         services.AddSingleton<AppViewModel>();
         services.AddSingleton<App>();
 

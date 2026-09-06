@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using ControllerMonitor.Interfaces;
 using ControllerMonitor.ViewModels;
 
@@ -10,8 +11,13 @@ namespace ControllerMonitor.Windows;
 public partial class MainWindow : Window
 {
     private MainWindowViewModel? _viewModel;
+    private INotificationService? _notificationService;
 
     private bool _isShutdown = false;
+
+    // Set right before an intentional Close() triggered by minimizing to tray, so
+    // MainWindow_Closing lets it through instead of cancelling it back to Minimized.
+    private bool _isClosingToTray = false;
 
     public MainWindow()
     {
@@ -23,12 +29,13 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         PropertyChanged += MainWindow_PropertyChanged;
-        Loaded += MainWindow_Loaded;
         Closing += MainWindow_Closing;
+        Closed += MainWindow_Closed;
 
         _viewModel = viewModel;
         DataContext = _viewModel;
 
+        _notificationService = notificationService;
         notificationService.Initialize(this);
 
         // Apply settings
@@ -113,31 +120,41 @@ public partial class MainWindow : Window
         }
     }
 
-    private void MainWindow_Loaded(object? sender, EventArgs e)
-    {
-        if (_viewModel!.Settings.StartMinimized)
-        {
-            WindowState = WindowState.Minimized;
-        }
-    }
-
     private void MainWindow_PropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property == WindowStateProperty 
-            && WindowState == WindowState.Minimized 
+        if (e.Property == WindowStateProperty
+            && WindowState == WindowState.Minimized
             && _viewModel!.Settings.MinimizeToTray)
         {
             ShowInTaskbar = false;
             Hide();
+
+            Dispatcher.UIThread.Post(() =>
+            {
+                // Skip if the user reopened the window before this ran.
+                if (!IsVisible)
+                {
+                    _isClosingToTray = true;
+                    Close();
+                }
+            }, DispatcherPriority.Background);
         }
     }
 
     private void MainWindow_Closing(object? sender, WindowClosingEventArgs e)
     {
-        if (!_isShutdown && WindowState != WindowState.Minimized)
+        if (!_isShutdown && !_isClosingToTray && WindowState != WindowState.Minimized)
         {
             e.Cancel = true;
             WindowState = WindowState.Minimized;
         }
+    }
+
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
+        // Release the notification manager's reference to this window so the whole
+        // visual tree becomes eligible for garbage collection once closed.
+        _notificationService?.Initialize(null);
+        _notificationService = null;
     }
 }

@@ -5,9 +5,22 @@
 		<AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
 		<SelfContained>true</SelfContained>
 		<InvariantGlobalization>false</InvariantGlobalization>
-		<TrimMode>copyused</TrimMode>
+		<TrimMode>partial</TrimMode>
 	</PropertyGroup>
-	
+
+	<ItemGroup>
+		<!-- No benefit from a background GC thread for a mostly-idle app with a small
+		     live set; removing it also removes its dedicated thread/stack. -->
+		<RuntimeHostConfigurationOption Include="System.GC.Concurrent" Value="false" />
+		<!-- Let decommitted GC segments actually be returned to the OS instead of kept
+		     reserved for reuse. -->
+		<RuntimeHostConfigurationOption Include="System.GC.RetainVM" Value="false" />
+		<!-- 0-9 scale (0 = favor throughput, 9 = favor minimal memory use). 5 trades a
+		     bit of GC CPU time for more aggressive heap trimming, which fits a
+		     background utility better than a default tuned for throughput-heavy apps. -->
+		<RuntimeHostConfigurationOption Include="System.GC.ConserveMemory" Value="5" />
+	</ItemGroup>
+
 	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'win-x64' OR '$(RuntimeIdentifier)' == 'win-x86' OR '$(RuntimeIdentifier)' == 'win-arm64' OR '$([MSBuild]::IsOSPlatform(Windows))' == 'true'">
 		<DefineConstants>$(DefineConstants);WINDOWS</DefineConstants>
 		<TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
@@ -16,13 +29,16 @@
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AssemblyTitle>Controller Monitor</AssemblyTitle>
+		<PublishTrimmed>true</PublishTrimmed>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(RuntimeIdentifier)' == 'linux-x64' OR '$(RuntimeIdentifier)' == 'linux-arm64' OR '$([MSBuild]::IsOSPlatform(Linux))' == 'true'">
 		<DefineConstants>$(DefineConstants);LINUX</DefineConstants>
 		<TargetFramework>net10.0</TargetFramework>
 		<PublishAot>true</PublishAot>
-		<PublishSingleFile>true</PublishSingleFile>
+		<StripSymbols>true</StripSymbols>
+		<IlcOptimizationPreference>Size</IlcOptimizationPreference>
+		<IlcFoldIdenticalMethodBodies>true</IlcFoldIdenticalMethodBodies>
 	</PropertyGroup>
 
 	<ItemGroup>
