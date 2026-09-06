@@ -34,6 +34,8 @@ namespace ControllerMonitor
 
                 _viewModel = _serviceProvider.GetRequiredService<AppViewModel>();
 
+                _serviceProvider.GetRequiredService<MainWindowViewModel>();
+
                 var singleInstanceService = _serviceProvider.GetRequiredService<SingleInstanceService>();
                 singleInstanceService.SetShowMainWindowCallback(ShowMainWindow);
 
