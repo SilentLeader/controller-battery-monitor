@@ -9,7 +9,7 @@ namespace ControllerMonitor.UPower.Services;
 /// <summary>
 /// Core UPower client service providing async access to battery devices
 /// </summary>
-public sealed class UPowerClient(
+public sealed partial class UPowerClient(
     ILogger<UPowerClient> logger,
     UPowerPropertyConverter propertyConverter) : IDisposable
 {
@@ -114,7 +114,7 @@ public sealed class UPowerClient(
         return await Task.Run(() =>
         {
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             return _clientHandle!.UseHandle(clientPtr =>
             {
                 using var devicesArray = new SafeGPtrArrayHandle(UPowerNative.up_client_get_devices(clientPtr));
@@ -123,70 +123,58 @@ public sealed class UPowerClient(
                     _logger.LogWarning("No devices returned from UPower");
                     return (IReadOnlyList<BatteryDevice>)Array.Empty<BatteryDevice>();
                 }
-                
-                var devices = new List<BatteryDevice>();
+
                 var deviceCount = devicesArray.Length;
-                
-                _logger.LogDebug("Processing {DeviceCount} UPower devices", deviceCount);
-                
-                // Use semaphore to limit concurrent device processing
-                using var concurrencySemaphore = new SemaphoreSlim(1);
-                var tasks = new Task<BatteryDevice?>[deviceCount];
-                
+                LogProcessingDevices(_logger, deviceCount);
+
+                var devices = new List<BatteryDevice>((int)deviceCount);
                 for (uint i = 0; i < deviceCount; i++)
                 {
-                    var devicePtr = devicesArray.GetElement(i);
-                    tasks[i] = ProcessDeviceAsync(devicePtr, concurrencySemaphore, cancellationToken);
-                }
-                
-                var results = Task.WhenAll(tasks).GetAwaiter().GetResult();
-                
-                foreach (var device in results)
-                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    var device = ProcessDevice(devicesArray.GetElement(i));
                     if (device != null)
                     {
                         devices.Add(device);
                     }
                 }
-                
-                _logger.LogDebug("Found {FilteredCount} relevant battery devices out of {TotalCount} total devices", 
-                    devices.Count, deviceCount);
-                
-                return devices.AsReadOnly();
+
+                LogFoundDevices(_logger, devices.Count, deviceCount);
+
+                return (IReadOnlyList<BatteryDevice>)devices;
             });
         }, cancellationToken);
     }
-    
+
     /// <summary>
-    /// Processes a single device asynchronously
+    /// Processes a single device
     /// </summary>
-    private async Task<BatteryDevice?> ProcessDeviceAsync(IntPtr devicePtr, SemaphoreSlim semaphore, CancellationToken cancellationToken)
+    private BatteryDevice? ProcessDevice(IntPtr devicePtr)
     {
         if (devicePtr == IntPtr.Zero)
             return null;
-            
-        await semaphore.WaitAsync(cancellationToken);
+
         try
         {
             using var deviceHandle = SafeUPowerDeviceHandle.CreateFromPtr(devicePtr);
             if (deviceHandle.IsInvalid)
                 return null;
-            
-            var objectPath = deviceHandle.UseHandle(ptr => 
+
+            var objectPath = deviceHandle.UseHandle(ptr =>
                 UPowerNative.PtrToStringUTF8(UPowerNative.up_device_get_object_path(ptr)) ?? "");
-                
+
             if (string.IsNullOrEmpty(objectPath))
                 return null;
-            
+
             var device = _propertyConverter.ExtractBatteryDevice(deviceHandle, objectPath);
-            
+
             // Validate and sanitize if enabled
             if (!_propertyConverter.ValidateDeviceProperties(device))
             {
                 _logger.LogWarning("Device validation failed for {ObjectPath}, sanitizing data", objectPath);
                 device = _propertyConverter.SanitizeDeviceProperties(device);
             }
-            
+
             return device;
         }
         catch (Exception ex)
@@ -194,11 +182,13 @@ public sealed class UPowerClient(
             _logger.LogDebug(ex, "Failed to process device {DevicePtr}", devicePtr);
             return null;
         }
-        finally
-        {
-            semaphore.Release();
-        }
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Processing {DeviceCount} UPower devices")]
+    private static partial void LogProcessingDevices(ILogger logger, uint deviceCount);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Found {FilteredCount} relevant battery devices out of {TotalCount} total devices")]
+    private static partial void LogFoundDevices(ILogger logger, int filteredCount, uint totalCount);
     
     /// <summary>
     /// Ensures the client is initialized

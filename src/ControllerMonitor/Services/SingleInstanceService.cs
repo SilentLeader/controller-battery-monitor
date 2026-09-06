@@ -3,9 +3,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Threading;
 using System.Threading.Tasks;
-using Avalonia.Controls;
 using Avalonia.Threading;
-using ControllerMonitor.Windows;
 using Microsoft.Extensions.Logging;
 
 namespace ControllerMonitor.Services;
@@ -19,14 +17,17 @@ public class SingleInstanceService(ILogger<SingleInstanceService> logger) : IDis
     private FileStream? _lockFile;
     private Task? _pipeTask;
     private CancellationTokenSource? _cancellationTokenSource;
-    private MainWindow? _mainWindow;
+    private Action? _showMainWindowRequested;
     private bool disposedValue;
 
     public bool IsFirstInstance { get; private set; }
 
-    public void SetMainWindow(MainWindow mainWindow)
+    /// <summary>
+    /// Registers the callback invoked when another instance asks this one to show its window. 
+    /// </summary>
+    public void SetShowMainWindowCallback(Action callback)
     {
-        _mainWindow = mainWindow;
+        _showMainWindowRequested = callback;
     }
 
     public bool TryAcquireSingleInstance()
@@ -148,15 +149,7 @@ public class SingleInstanceService(ILogger<SingleInstanceService> logger) : IDis
                         if (message == "SHOW")
                         {
                             _logger.LogDebug("Received SHOW command, bringing window to front");
-                            Dispatcher.UIThread.Invoke(() =>
-                            {
-                                if (_mainWindow != null)
-                                {
-                                    _mainWindow.Show();
-                                    _mainWindow.WindowState = WindowState.Normal;
-                                    _mainWindow.Activate();
-                                }
-                            });
+                            Dispatcher.UIThread.Invoke(() => _showMainWindowRequested?.Invoke());
                         }
                     }
                 }

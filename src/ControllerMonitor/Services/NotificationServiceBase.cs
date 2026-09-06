@@ -11,9 +11,9 @@ public abstract class NotificationServiceBase : INotificationService
 {
     private WindowNotificationManager? _notificationManager;
 
-    public virtual void Initialize(Window window)
+    public virtual void Initialize(Window? window)
     {
-        _notificationManager = new WindowNotificationManager(window);
+        _notificationManager = window != null ? new WindowNotificationManager(window) : null;
     }
 
     public virtual Task ShowNotificationAsync(string title, string message, ValueObjects.NotificationPriority type = ValueObjects.NotificationPriority.Normal)

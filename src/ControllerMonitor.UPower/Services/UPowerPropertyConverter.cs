@@ -9,7 +9,7 @@ namespace ControllerMonitor.UPower.Services;
 /// <summary>
 /// Service for converting UPower device properties from native GVariant types
 /// </summary>
-public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> logger)
+public sealed partial class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> logger)
 {
     private readonly ILogger<UPowerPropertyConverter> _logger = logger;
 
@@ -42,9 +42,8 @@ public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> log
                     UpdateTime = DateTimeOffset.FromUnixTimeSeconds((long)GetUInt64Property(devicePtr, "update-time"))
                 };
                 
-                _logger.LogDebug("Extracted device properties for {ObjectPath}: {Model} ({Type}) - {Percentage}%", 
-                    objectPath, device.Model, device.Type, device.Percentage);
-                
+                LogExtractedDeviceProperties(_logger, objectPath, device.Model, device.Type, device.Percentage);
+
                 return device;
             });
         }
@@ -147,8 +146,8 @@ public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> log
             {
                 return (DeviceType)typeValue;
             }
-            
-            _logger.LogDebug("Unknown device type value: {TypeValue}", typeValue);
+
+            LogUnknownDeviceType(_logger, typeValue);
             return DeviceType.Unknown;
         }
         catch (Exception ex)
@@ -170,8 +169,8 @@ public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> log
             {
                 return (BatteryState)stateValue;
             }
-            
-            _logger.LogDebug("Unknown battery state value: {StateValue}", stateValue);
+
+            LogUnknownBatteryState(_logger, stateValue);
             return BatteryState.Unknown;
         }
         catch (Exception ex)
@@ -193,8 +192,8 @@ public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> log
             {
                 return (BatteryTechnology)technologyValue;
             }
-            
-            _logger.LogDebug("Unknown battery technology value: {TechnologyValue}", technologyValue);
+
+            LogUnknownBatteryTechnology(_logger, technologyValue);
             return BatteryTechnology.Unknown;
         }
         catch (Exception ex)
@@ -214,11 +213,11 @@ public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> log
             var levelValue = GetUInt32Property(devicePtr, "battery-level");
             if (Enum.IsDefined(typeof(BatteryLevel), (int)levelValue))
             {
-                _logger.LogDebug("Battery level value: {LevelValue}", levelValue);
+                LogBatteryLevelValue(_logger, levelValue);
                 return (BatteryLevel)levelValue;
             }
-            
-            _logger.LogDebug("Unknown battery level value: {LevelValue}", levelValue);
+
+            LogUnknownBatteryLevel(_logger, levelValue);
             return BatteryLevel.Unknown;
         }
         catch (Exception ex)
@@ -286,4 +285,22 @@ public sealed class UPowerPropertyConverter(ILogger<UPowerPropertyConverter> log
             Capacity = Math.Clamp(device.Capacity, 0, 100)
         };
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Extracted device properties for {ObjectPath}: {Model} ({Type}) - {Percentage}%")]
+    private static partial void LogExtractedDeviceProperties(ILogger logger, string objectPath, string model, DeviceType type, double percentage);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Unknown device type value: {TypeValue}")]
+    private static partial void LogUnknownDeviceType(ILogger logger, uint typeValue);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Unknown battery state value: {StateValue}")]
+    private static partial void LogUnknownBatteryState(ILogger logger, uint stateValue);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Unknown battery technology value: {TechnologyValue}")]
+    private static partial void LogUnknownBatteryTechnology(ILogger logger, uint technologyValue);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Battery level value: {LevelValue}")]
+    private static partial void LogBatteryLevelValue(ILogger logger, uint levelValue);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Unknown battery level value: {LevelValue}")]
+    private static partial void LogUnknownBatteryLevel(ILogger logger, uint levelValue);
 }

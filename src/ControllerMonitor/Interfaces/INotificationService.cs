@@ -6,7 +6,12 @@ namespace ControllerMonitor.Interfaces;
 
 public interface INotificationService
 {
-    void Initialize(Window window);
+    /// <summary>
+    /// Attaches the in-app notification manager to the given window, or detaches it
+    /// (pass null) once the window is closed so it doesn't keep the window's whole
+    /// visual tree alive.
+    /// </summary>
+    void Initialize(Window? window);
     Task ShowNotificationAsync(string title, string message, NotificationPriority type = NotificationPriority.Normal);
 
     /// <summary>

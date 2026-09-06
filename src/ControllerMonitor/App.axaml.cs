@@ -1,8 +1,10 @@
 using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using ControllerMonitor.Interfaces;
 using ControllerMonitor.Services;
 using ControllerMonitor.ViewModels;
 using ControllerMonitor.Windows;
@@ -11,34 +13,39 @@ using Microsoft.Extensions.DependencyInjection;
 namespace ControllerMonitor
 {
     public partial class App(IServiceProvider serviceProvider) : Application()
-    {   
+    {
         private AppViewModel? _viewModel;
 
         private MainWindow? _mainWindow;
         private readonly IServiceProvider _serviceProvider = serviceProvider;
+        private bool _isShuttingDown;
 
         public override void Initialize()
         {
             AvaloniaXamlLoader.Load(this);
         }
 
-        public override void OnFrameworkInitializationCompleted()        
+        public override void OnFrameworkInitializationCompleted()
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // Resolve services from DI container
+                // Set shutdown mode to OnExplicitShutdown to allow the application to run in background
+                desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+
                 _viewModel = _serviceProvider.GetRequiredService<AppViewModel>();
-                _mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
-                desktop.MainWindow = _mainWindow;
 
-                // Set the MainWindow in the single instance service for window activation
                 var singleInstanceService = _serviceProvider.GetRequiredService<SingleInstanceService>();
-                singleInstanceService.SetMainWindow(_mainWindow);
+                singleInstanceService.SetShowMainWindowCallback(ShowMainWindow);
 
-                // Set DataContext at Application level for bindings to work
                 if (_viewModel != null)
                 {
                     DataContext = _viewModel;
+                }
+
+                var settingsService = _serviceProvider.GetRequiredService<ISettingsService>();
+                if (!settingsService.GetSettings().StartMinimized)
+                {
+                    ShowMainWindow();
                 }
 
                 // Handle system shutdown to allow proper logout
@@ -51,16 +58,41 @@ namespace ControllerMonitor
             base.OnFrameworkInitializationCompleted();
         }
 
-        public void ShowMainWindow_Click(object sender, EventArgs args)
+        public void ShowMainWindow_Click(object sender, EventArgs args) => ShowMainWindow();
+
+        private void ShowMainWindow()
+        {
+            if (_mainWindow == null)
+            {
+                _mainWindow = _serviceProvider.GetRequiredService<MainWindow>();
+                _mainWindow.Closed += MainWindow_Closed;
+
+                if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
+                {
+                    desktop.MainWindow = _mainWindow;
+                }
+            }
+
+            _mainWindow.ShowInTaskbar = true;
+            _mainWindow.WindowState = WindowState.Normal;
+            _mainWindow.Show();
+
+            _mainWindow.Activate();
+            _mainWindow.Focus();
+        }
+
+        private void MainWindow_Closed(object? sender, EventArgs e)
         {
             if (_mainWindow != null)
             {
-                _mainWindow.ShowInTaskbar = true;
-                _mainWindow.WindowState = WindowState.Normal;
-                _mainWindow.Show();
+                _mainWindow.Closed -= MainWindow_Closed;
+            }
+            _mainWindow = null;
 
-                _mainWindow.Activate();
-                _mainWindow.Focus();
+            if (!_isShuttingDown)
+            {
+                // Free up resources after window is closed
+                Task.Run(() => GC.Collect(2, GCCollectionMode.Aggressive, blocking: true, compacting: true));
             }
         }
 
@@ -74,6 +106,12 @@ namespace ControllerMonitor
 
         private void CleanupAndShutdown(IClassicDesktopStyleApplicationLifetime desktop)
         {
+            if (_isShuttingDown)
+            {
+                return;
+            }
+            _isShuttingDown = true;
+
             // Prepare main window for shutdown and close
             try
             {

@@ -221,19 +221,7 @@ internal static class UPowerNative
     #endregion
     
     #region GLib Memory Management
-    
-    /// <summary>
-    /// Frees memory allocated by GLib
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern void g_free(IntPtr ptr);
-    
-    /// <summary>
-    /// Allocates memory using GLib allocator
-    /// </summary>
-    [DllImport(LibGLib, CallingConvention = CallingConvention.Cdecl)]
-    internal static extern IntPtr g_malloc(nuint size);
-    
+
     /// <summary>
     /// Decrements the reference count of a GPtrArray and frees it when the reference count reaches zero
     /// </summary>
@@ -243,7 +231,7 @@ internal static class UPowerNative
     #endregion
             
     #region Helper Methods
-        
+
     /// <summary>
     /// Safely converts IntPtr to UTF-8 string without freeing memory
     /// </summary>
@@ -251,143 +239,61 @@ internal static class UPowerNative
     {
         return ptr == IntPtr.Zero ? null : Marshal.PtrToStringUTF8(ptr);
     }
-    
+
     /// <summary>
-    /// Helper method to allocate and zero-initialize a GValue
+    /// Reads a GObject property into a stack-allocated GValue and extracts it with
+    /// <paramref name="valueGetter"/>. GValue is a fixed-size unmanaged struct, so a
+    /// stack slot is enough - this used to g_malloc/g_free a heap block for every
+    /// single property read, and a full device has ~15 properties read on every
+    /// polling tick for every UPower device on the system.
     /// </summary>
-    private static IntPtr AllocateZeroedGValue()
+    private static unsafe TResult GetObjectProperty<TResult>(
+        IntPtr obj, string propertyName, nuint gType, Func<IntPtr, TResult> valueGetter)
     {
-        unsafe
+        GValue value = default;
+        var valuePtr = (IntPtr)(&value);
+
+        g_value_init(valuePtr, gType);
+        try
         {
-            IntPtr valuePtr = g_malloc((nuint)sizeof(GValue));
-            if (valuePtr == IntPtr.Zero)
-                return IntPtr.Zero;
-                
-            // Zero-initialize the memory - this is critical for GValue
-            for (int i = 0; i < sizeof(GValue); i++)
-            {
-                ((byte*)valuePtr)[i] = 0;
-            }
-            
-            return valuePtr;
+            g_object_get_property(obj, propertyName, valuePtr);
+            return valueGetter(valuePtr);
+        }
+        finally
+        {
+            g_value_unset(valuePtr);
         }
     }
-    
+
     /// <summary>
     /// Helper method to safely get a string property from a GObject
     /// </summary>
-    internal static string? GetObjectStringProperty(IntPtr obj, string propertyName)
-    {
-        IntPtr valuePtr = AllocateZeroedGValue();
-        if (valuePtr == IntPtr.Zero)
-            return null;
-            
-        try
-        {
-            g_value_init(valuePtr, GType.String);
-            g_object_get_property(obj, propertyName, valuePtr);
-            
-            IntPtr stringPtr = g_value_get_string(valuePtr);
-            return PtrToStringUTF8(stringPtr);
-        }
-        finally
-        {
-            g_value_unset(valuePtr);
-            g_free(valuePtr);
-        }
-    }
-    
+    internal static string? GetObjectStringProperty(IntPtr obj, string propertyName) =>
+        GetObjectProperty(obj, propertyName, GType.String, static ptr => PtrToStringUTF8(g_value_get_string(ptr)));
+
     /// <summary>
     /// Helper method to safely get a double property from a GObject
     /// </summary>
-    internal static double GetObjectDoubleProperty(IntPtr obj, string propertyName)
-    {
-        IntPtr valuePtr = AllocateZeroedGValue();
-        if (valuePtr == IntPtr.Zero)
-            return 0.0;
-            
-        try
-        {
-            g_value_init(valuePtr, GType.Double);
-            g_object_get_property(obj, propertyName, valuePtr);
-            
-            return g_value_get_double(valuePtr);
-        }
-        finally
-        {
-            g_value_unset(valuePtr);
-            g_free(valuePtr);
-        }
-    }
-    
+    internal static double GetObjectDoubleProperty(IntPtr obj, string propertyName) =>
+        GetObjectProperty(obj, propertyName, GType.Double, g_value_get_double);
+
     /// <summary>
     /// Helper method to safely get a uint property from a GObject
     /// </summary>
-    internal static uint GetObjectUIntProperty(IntPtr obj, string propertyName)
-    {
-        IntPtr valuePtr = AllocateZeroedGValue();
-        if (valuePtr == IntPtr.Zero)
-            return 0;
-            
-        try
-        {
-            g_value_init(valuePtr, GType.UInt);
-            g_object_get_property(obj, propertyName, valuePtr);
-            
-            return g_value_get_uint(valuePtr);
-        }
-        finally
-        {
-            g_value_unset(valuePtr);
-            g_free(valuePtr);
-        }
-    }
-        
+    internal static uint GetObjectUIntProperty(IntPtr obj, string propertyName) =>
+        GetObjectProperty(obj, propertyName, GType.UInt, g_value_get_uint);
+
     /// <summary>
     /// Helper method to safely get a boolean property from a GObject
     /// </summary>
-    internal static bool GetObjectBooleanProperty(IntPtr obj, string propertyName)
-    {
-        IntPtr valuePtr = AllocateZeroedGValue();
-        if (valuePtr == IntPtr.Zero)
-            return false;
-            
-        try
-        {
-            g_value_init(valuePtr, GType.Boolean);
-            g_object_get_property(obj, propertyName, valuePtr);
-            
-            return g_value_get_boolean(valuePtr);
-        }
-        finally
-        {
-            g_value_unset(valuePtr);
-            g_free(valuePtr);
-        }
-    }
-    
+    internal static bool GetObjectBooleanProperty(IntPtr obj, string propertyName) =>
+        GetObjectProperty(obj, propertyName, GType.Boolean, g_value_get_boolean);
+
     /// <summary>
     /// Helper method to safely get a uint64 property from a GObject
     /// </summary>
-    internal static ulong GetObjectUInt64Property(IntPtr obj, string propertyName)
-    {
-        IntPtr valuePtr = AllocateZeroedGValue();
-        if (valuePtr == IntPtr.Zero)
-            return 0UL;
-            
-        try
-        {
-            g_value_init(valuePtr, GType.UInt64);
-            g_object_get_property(obj, propertyName, valuePtr);
-            
-            return g_value_get_uint64(valuePtr);
-        }
-        finally
-        {
-            g_value_unset(valuePtr);
-            g_free(valuePtr);
-        }
-    }
-    
+    internal static ulong GetObjectUInt64Property(IntPtr obj, string propertyName) =>
+        GetObjectProperty(obj, propertyName, GType.UInt64, g_value_get_uint64);
+
     #endregion
 }

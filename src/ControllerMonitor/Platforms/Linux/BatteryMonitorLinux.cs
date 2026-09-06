@@ -17,7 +17,7 @@ using ControllerBatteryLevel = ControllerMonitor.ValueObjects.BatteryLevel;
 
 namespace ControllerMonitor.Platforms.Linux;
 
-public class BatteryMonitorLinux : BatteryMonitorServiceBase
+public partial class BatteryMonitorLinux : BatteryMonitorServiceBase
 {
     private readonly IServiceProvider? _serviceProvider;
 
@@ -53,30 +53,28 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             var upowerResult = await TryGetBatteryFromUPowerAsync();
             if (upowerResult.HasValue)
             {
-                _logger.LogDebug("Battery info retrieved via UPower: {Model} - {Percentage}%",
-                    upowerResult.Value.ModelName, upowerResult.Value.Capacity);
+                LogBatteryInfoViaUPower(_logger, upowerResult.Value.ModelName, upowerResult.Value.Capacity);
                 return upowerResult.Value;
             }
 
-            _logger.LogDebug("UPower detection failed, falling back to sysfs");
+            LogUPowerDetectionFailed(_logger);
 
             // Tier 2: Fallback to sysfs (existing implementation)
             var sysfsResult = await GetBatteryFromSysfsAsync();
             if (sysfsResult.HasValue)
             {
-                _logger.LogDebug("Battery info retrieved via sysfs: {Model} - {Percentage}%",
-                    sysfsResult.Value.ModelName, sysfsResult.Value.Capacity);
+                LogBatteryInfoViaSysfs(_logger, sysfsResult.Value.ModelName, sysfsResult.Value.Capacity);
                 return sysfsResult.Value;
             }
 
-            _logger.LogDebug("No battery devices detected via UPower or sysfs");
+            LogNoBatteryDevicesDetected(_logger);
             return new();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Get battery info failed");
 
-            // Try fallback to sysfs if primary method fails
+            // Try to fall back to sysfs if primary method fails
             try
             {
                 var fallbackResult = await GetBatteryFromSysfsAsync();
@@ -355,5 +353,17 @@ public class BatteryMonitorLinux : BatteryMonitorServiceBase
             _ => ControllerBatteryLevel.Unknown
         };
     }
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Battery info retrieved via UPower: {Model} - {Percentage}%")]
+    private static partial void LogBatteryInfoViaUPower(ILogger logger, string? model, int? percentage);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "UPower detection failed, falling back to sysfs")]
+    private static partial void LogUPowerDetectionFailed(ILogger logger);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "Battery info retrieved via sysfs: {Model} - {Percentage}%")]
+    private static partial void LogBatteryInfoViaSysfs(ILogger logger, string? model, int? percentage);
+
+    [LoggerMessage(Level = LogLevel.Debug, Message = "No battery devices detected via UPower or sysfs")]
+    private static partial void LogNoBatteryDevicesDetected(ILogger logger);
 }
 #endif
