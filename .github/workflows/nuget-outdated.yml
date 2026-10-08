@@ -55,21 +55,21 @@ jobs:
         RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
         {
-          echo "@$OWNER — frissíthető NuGet csomagok ($(date -u +%Y-%m-%d)):"
+          echo "@$OWNER — outdated NuGet packages ($(date -u +%Y-%m-%d)):"
           echo
-          echo "| Csomag | Projekt | Framework | Jelenlegi | Legújabb |"
+          echo "| Package | Project | Framework | Current | Latest |"
           echo "|---|---|---|---|---|"
           cat rows.md
           echo
-          echo "Workflow futás: $RUN_URL"
+          echo "Workflow run: $RUN_URL"
         } > body.md
 
-        gh label create nuget-updates --color 0366d6 --description "Frissíthető NuGet csomagok" --force
+        gh label create nuget-updates --color 0366d6 --description "Outdated NuGet packages" --force
 
         existing=$(gh issue list --label nuget-updates --state open --json number --jq '.[0].number // empty')
         if [ -n "$existing" ]; then
           # A comment triggers an e-mail notification, an edited body would not
           gh issue comment "$existing" --body-file body.md
         else
-          gh issue create --title "NuGet csomagfrissítések elérhetők" --label nuget-updates --body-file body.md
+          gh issue create --title "NuGet package updates available" --label nuget-updates --body-file body.md
         fi
