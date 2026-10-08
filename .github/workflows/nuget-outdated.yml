@@ -1,0 +1,75 @@
+name: NuGet Outdated Check
+
+on:
+  schedule:
+    # Every month on the 1st at 06:00 UTC
+    - cron: '0 6 1 * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check-outdated:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v7
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v5
+      with:
+        dotnet-version: '10.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore src/ControllerMonitor.sln
+
+    - name: List outdated packages
+      id: outdated
+      run: |
+        dotnet list src/ControllerMonitor.sln package --outdated --format json > outdated.json
+
+        jq -r '
+          [ .projects[]
+            | (.path | split("/") | last) as $project
+            | (.frameworks // [])[]
+            | .framework as $fw
+            | (.topLevelPackages // [])[]
+            | "| \(.id) | \($project) | \($fw) | \(.resolvedVersion) | \(.latestVersion) |"
+          ] | unique | .[]
+        ' outdated.json > rows.md
+
+        count=$(wc -l < rows.md)
+        echo "count=$count" >> "$GITHUB_OUTPUT"
+        echo "Outdated packages: $count"
+        cat rows.md
+
+    - name: Create or update issue
+      if: steps.outdated.outputs.count != '0'
+      env:
+        GH_TOKEN: ${{ github.token }}
+        GH_REPO: ${{ github.repository }}
+        OWNER: ${{ github.repository_owner }}
+        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        {
+          echo "@$OWNER — frissíthető NuGet csomagok ($(date -u +%Y-%m-%d)):"
+          echo
+          echo "| Csomag | Projekt | Framework | Jelenlegi | Legújabb |"
+          echo "|---|---|---|---|---|"
+          cat rows.md
+          echo
+          echo "Workflow futás: $RUN_URL"
+        } > body.md
+
+        gh label create nuget-updates --color 0366d6 --description "Frissíthető NuGet csomagok" --force
+
+        existing=$(gh issue list --label nuget-updates --state open --json number --jq '.[0].number // empty')
+        if [ -n "$existing" ]; then
+          # A comment triggers an e-mail notification, an edited body would not
+          gh issue comment "$existing" --body-file body.md
+        else
+          gh issue create --title "NuGet csomagfrissítések elérhetők" --label nuget-updates --body-file body.md
+        fi
